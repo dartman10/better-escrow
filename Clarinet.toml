@@ -1,0 +1,8 @@
+[project]
+name = "better-escrow"
+requirements = []
+costs_version = 1
+
+[contracts.better-escrow]
+path = "contracts/better-escrow.clar"
+depends_on = []
