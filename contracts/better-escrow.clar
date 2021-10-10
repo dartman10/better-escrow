@@ -72,9 +72,6 @@
 (define-public (create-bill (total-price uint))
   (begin
     (var-set price total-price)
-;;    (try! (stx-transfer? total-price tx-sender (as-contract tx-sender)))
-    (print tx-sender)
-    (print (as-contract tx-sender))
     (try! (stx-transfer? total-price tx-sender (as-contract tx-sender)))
     (ok true)
   )
@@ -95,7 +92,3 @@
     (ok (var-get buyer-funds))
   )
 )
-
-
-
-;;ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.better-escrow
