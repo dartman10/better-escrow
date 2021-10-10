@@ -10,6 +10,7 @@
 
 ;; data maps and vars
 (define-data-var price uint u0)
+(define-data-var buyer-funds uint u0)
 
 ;; private functions
 ;; 
@@ -38,6 +39,21 @@
   )
 )
 
+;; Buyer accepts the bill, by sending funds to escrow. (Technically, sends STX to smart contract and locked)
+(define-public (accept-bill (funding uint))
+  (begin
+    (var-set buyer-funds funding)
+    (ok true)
+  )
+)
+
+;; Return status of contract
+;; Question - how do I return all the variables? map? tuple? print?
+(define-public (status-of-contract)
+  (begin
+    (ok (var-get buyer-funds))
+  )
+)
 
 
 
