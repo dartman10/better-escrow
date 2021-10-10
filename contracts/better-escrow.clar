@@ -36,6 +36,7 @@
 (define-constant contract-owner (as-contract "STNHKEPYEPJ8ET55ZZ0M5A34J0R3N5FM2CMMMAZ6"))
 
 ;; data maps and vars
+;;(define-data-var seller (principal-of? public-key))
 (define-data-var price uint u0)
 (define-data-var buyer-funds uint u0)
 
