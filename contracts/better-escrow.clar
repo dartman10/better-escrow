@@ -17,7 +17,9 @@
 ;; no dispute.  But switches to centralized in case of dispute. 
 
 ;; constants
-(define-constant contract-owner tx-sender)
+
+;;hardcoded Better Escrow as the contract owner for all instances of this smart contract
+(define-constant contract-owner (as-contract "STNHKEPYEPJ8ET55ZZ0M5A34J0R3N5FM2CMMMAZ6"))
 
 ;; data maps and vars
 (define-data-var price uint u0)
@@ -33,7 +35,7 @@
    (ok shoutOut)
  )
 
-;; Perhaps needed by UI
+;; To verify Better Escrow is indeed the contract owner of this instance of smart contract.
 (define-read-only (get-contract-owner)
   (ok contract-owner)
 )
@@ -50,6 +52,7 @@
 (define-public (create-bill (total-price uint))
   (begin
     (var-set price total-price)
+;;    (try! (stx-transfer? total-price tx-sender (as-contract tx-sender)))
     (try! (stx-transfer? total-price tx-sender (as-contract tx-sender)))
     (ok true)
   )
