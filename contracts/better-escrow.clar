@@ -16,9 +16,23 @@
 ;; the Better Escrow is the Arbiter.  So yeah, its fully decentralized when there is
 ;; no dispute.  But switches to centralized in case of dispute. 
 
+;; Question again. Is NFT better for this escrow application?
+;; Why do you ask?  Because I think it's good for tracking all live contracts.
+;; I mean, how do I do it with no NFT?
+;; Like all pending funds are in the same one contract?  Accumulated?
+;; Doesn't that open up a potential crack for hacks?
+;; So I'm thinking an NFT is created everytime a seller creates a bill.
+;; -> Hmmm, how do I handle it then to make sure the seller has no unfair advantage over the buyer?
+;; -> Then finally burn the NFT once transaction complete.
+;; -> Will this NFT process be expensive and will not make sense?  I don't think so.  But we'll see.
+
+;; The HOWs:
+;;  1. Once a buyer principal is present, the NFT becomes a multisig contract.
+;;  2. When adding an Arbiter principal, both the seller and buyer should accept and sign the contract.
+
 ;; constants
 
-;;hardcoded Better Escrow as the contract owner for all instances of this smart contract
+;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
 (define-constant contract-owner (as-contract "STNHKEPYEPJ8ET55ZZ0M5A34J0R3N5FM2CMMMAZ6"))
 
 ;; data maps and vars
