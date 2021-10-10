@@ -5,6 +5,9 @@
 ;;   2. Buyer - accepts the bill charges (in the smart contract)  and sends funds to escrow (into the same smart contract)
 ;;   3. Mediator - needed in case of dispute. Not sure yet how to implement this.
 
+;; Is the contract deployer the contract owner?
+;; Always set owner of smart contract instance to the transaction sender?
+
 ;; constants
 (define-constant contract-owner tx-sender)
 
@@ -31,10 +34,15 @@
   (ok (var-get price))
 )
 
-;; Seller creates a bill.  (Possibly then sends the bill to buyer via email.)
+;; Seller creates a bill.
+;; Possibly then sends the bill to buyer via email.
+;; Technically, seller creates an instance of smart
+;; contract and sends STX to the contract at the same time.
+;; How does try! work again?
 (define-public (create-bill (total-price uint))
   (begin
     (var-set price total-price)
+    (try! (stx-transfer? total-price tx-sender (as-contract tx-sender)))
     (ok true)
   )
 )
