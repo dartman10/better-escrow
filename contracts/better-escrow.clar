@@ -1,4 +1,3 @@
-
 ;; better-escrow
 ;; The better escrow service.
 ;; Actors : seller, buyer, mediator.
@@ -10,7 +9,7 @@
 (define-constant contract-owner tx-sender)
 
 ;; data maps and vars
-;;
+(define-data-var price uint u0)
 
 ;; private functions
 ;; 
@@ -22,10 +21,22 @@
    (ok shoutOut)
  )
 
+;; Perhaps needed by UI
 (define-read-only (get-contract-owner)
   (ok contract-owner)
 )
 
+(define-read-only (get-price)
+  (ok (var-get price))
+)
+
+;; Seller creates a bill.  (Possibly then sends the bill to buyer via email.)
+(define-public (create-bill (total-price uint))
+  (begin
+    (var-set price total-price)
+    (ok true)
+  )
+)
 
 
 
