@@ -8,6 +8,14 @@
 ;; Is the contract deployer the contract owner?
 ;; Always set owner of smart contract instance to the transaction sender?
 
+;; Hmmm, just realized that it will not be fair to buyer if the seller is the
+;; contract owner, because the seller has the power over the transaction.
+;; Therefore, 'Better Escrow' should be the owner.  This means the contract
+;; owner is constant for all instances of this smart contract.  Later on, this
+;; could be delegated to an Arbiter (which is needed in case of )  For now,
+;; the Better Escrow is the Arbiter.  So yeah, its fully decentralized when there is
+;; no dispute.  But switches to centralized in case of dispute. 
+
 ;; constants
 (define-constant contract-owner tx-sender)
 
