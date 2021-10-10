@@ -55,12 +55,17 @@
   (ok contract-owner)
 )
 
+(define-read-only (get-tx-sender)
+  (ok tx-sender)
+)
+
 (define-read-only (get-price)
   (ok (var-get price))
 )
 
 ;; Seller creates a bill.
 ;; Possibly then sends the bill to buyer via email.
+
 ;; Technically, seller creates an instance of smart
 ;; contract and sends STX to the contract at the same time.
 ;; How does try! work again?
@@ -68,6 +73,8 @@
   (begin
     (var-set price total-price)
 ;;    (try! (stx-transfer? total-price tx-sender (as-contract tx-sender)))
+    (print tx-sender)
+    (print (as-contract tx-sender))
     (try! (stx-transfer? total-price tx-sender (as-contract tx-sender)))
     (ok true)
   )
