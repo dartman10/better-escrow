@@ -61,21 +61,12 @@
   (ok tx-sender)
 )
 
-(define-read-only (get-price)
-  (ok (var-get price))
+(define-read-only (get-contract-caller)
+  (ok contract-caller)
 )
 
-;; Seller creates a bill.
-;; Possibly then sends the bill to buyer via email.
-
-;; Technically, seller creates an instance of smart
-;; contract and sends STX to the contract at the same time.
-;; How does try! work again?
-(define-public (create-bill (total-price uint))
-  (begin
-    (var-set price total-price)
-    (stx-transfer? total-price tx-sender (as-contract tx-sender))
-  )
+(define-read-only (get-price)
+  (ok (var-get price))
 )
 
 ;; Buyer accepts the bill, by sending funds to escrow. (Technically, sends STX to smart contract and locked)
@@ -94,6 +85,15 @@
   )
 )
 
-(define-public (create-bill-2 (price2 uint))
-    (try! (stx-transfer? price2 tx-sender (as-contract tx-sender)) (err ERR_STX_TRANSFER))
+;; Seller creates a bill.
+;; Possibly then sends the bill to buyer via email.
+
+;; Technically, seller creates an instance of smart
+;; contract and sends STX to the contract at the same time.
+;; How does try! work again?
+(define-public (create-bill (total-price uint))
+  (begin
+    (try! (stx-transfer? total-price tx-sender (as-contract contract-caller)))
+    (ok true)
+  )
 )
