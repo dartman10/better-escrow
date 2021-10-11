@@ -34,6 +34,8 @@
 
 ;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
 (define-constant contract-owner (as-contract "STNHKEPYEPJ8ET55ZZ0M5A34J0R3N5FM2CMMMAZ6"))
+;; error consts
+(define-constant ERR_STX_TRANSFER u0)
 
 ;; data maps and vars
 ;;(define-data-var seller (principal-of? public-key))
@@ -72,8 +74,7 @@
 (define-public (create-bill (total-price uint))
   (begin
     (var-set price total-price)
-    (try! (stx-transfer? total-price tx-sender (as-contract tx-sender)))
-    (ok true)
+    (stx-transfer? total-price tx-sender (as-contract tx-sender))
   )
 )
 
@@ -91,4 +92,8 @@
   (begin
     (ok (var-get buyer-funds))
   )
+)
+
+(define-public (create-bill-2 (price2 uint))
+    (try! (stx-transfer? price2 tx-sender (as-contract tx-sender)) (err ERR_STX_TRANSFER))
 )
