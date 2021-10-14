@@ -11,23 +11,20 @@
 ;;  1. Once a buyer principal is present, the contract instance becomes a multisig contract.
 ;;  2. When adding a mediator principal, both the seller and buyer should accept and sign the contract.
 ;;
-;; Short term tactical solution:
-;; For now, use a map to keep track of active escrow contracts.
+;; Short term tactical solution, due to 3-week hackathon limit:
+;; - For now, use a map to keep track of active escrow contracts.
 ;; Will wait for Stacks team to focus on GAIA off-chain storage in 2021 Q4.
 ;; And because map is not iterable, limit one escrow per principal.
 ;;
 ;; ------------------------------------------
 ;; Enough talk.  Let's do this.
 ;; ------------------------------------------
-
 ;; constants
-
 ;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
 ;;(define-constant dartman (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
-(define-constant dartman (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5"))  ;; Clarinet
+(define-constant dartman (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
 ;; error constants
 (define-constant ERR_STX_TRANSFER u0)
-
 ;; data maps and vars
 ;;(define-data-var seller (principal-of? public-key))
 (define-data-var price uint u0)
@@ -73,40 +70,16 @@
 (define-public (status-of-contract)
   (begin
     (ok (var-get buyer-funds))
-  )
 )
-
+)
 ;; Seller creates a bill.
 ;; Possibly then sends the bill to buyer via email.
-
 ;; Technically, seller creates an instance of smart
 ;; contract and sends STX to the contract at the same time.
 ;; How does try! work again?
 (define-public (create-bill (total-price uint))
-  (begin
-    (try! (stx-transfer? total-price tx-sender (as-contract contract-caller)))
-    (ok true)
-  )
+(begin
+(try! (stx-transfer? total-price tx-sender (as-contract contract-caller)))
+(ok true)
 )
-
-;; punk
-
-;;(define-map punks { id: uint } { minted: bool }) ;; dartman
-(define-map escrows { id: uint } { status: "initial"ß }) ;; dartman
-
-;;(define-map punks-by-owner { owner: principal } { ids: (list 2500 uint) })  ;; dartman - check this part
-(define-map escrow-active-contracts
-              { seller: principal }
-              { ids: (list 2500 uint) })  ;; dartman - check this part
-
-
-(define-read-only (get-punks-entry-by-owner (owner principal))  ;;dartman
-  (default-to
-    { ids: (list ) }
-    (map-get? punks-by-owner { owner: owner })
-  )
-)
-
-(define-public (get-punks-by-owner (owner principal))  ;; dartman
-  (ok (get ids (get-punks-entry-by-owner owner)))
 )

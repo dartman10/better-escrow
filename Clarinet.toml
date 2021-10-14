@@ -6,3 +6,7 @@ costs_version = 1
 [contracts.better-escrow]
 path = "contracts/better-escrow.clar"
 depends_on = []
+
+[contracts.testing-001]
+path = "contracts/testing-001.clar"
+depends_on = []
