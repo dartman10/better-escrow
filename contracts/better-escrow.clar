@@ -19,14 +19,21 @@
 ;; ------------------------------------------
 ;; Enough talk.  Let's do this.
 ;; ------------------------------------------
+
 ;; constants
+
 ;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
-;;(define-constant dartman (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
-(define-constant dartman (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
+;;(define-constant better-escrow (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
+(define-constant better-escrow (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
+
 ;; error constants
 (define-constant ERR_STX_TRANSFER u0)
+
 ;; data maps and vars
-;;(define-data-var seller (principal-of? public-key))
+(define-data-var state-seller   uint u0)  ;; seller status - 0, 1, 2, 3, 4
+(define-data-var state-buyer    uint u0)
+(define-data-var state-mediator uint u0)
+
 (define-data-var price uint u0)
 (define-data-var buyer-funds uint u0)
 
@@ -42,7 +49,7 @@
 
 ;; To verify Better Escrow is indeed the contract owner of this instance of smart contract.
 (define-read-only (get-contract-owner)
-  (ok dartman)
+  (ok better-escrow)
 )
 
 (define-read-only (get-tx-sender)
@@ -57,6 +64,27 @@
   (ok (var-get price))
 )
 
+;; Return status of contract
+;; Question - how do I return all the variables? map? tuple? print?
+(define-public (status-of-contract)
+  (begin
+    (ok (list (var-get state-seller) (var-get state-buyer) (var-get state-mediator) ))
+  )
+)
+
+;; Seller creates a bill.
+;; Possibly then sends the bill to buyer via email.
+;; Technically, seller creates an instance of smart
+;; contract and sends STX to the contract at the same time.
+;; How does try! work again?
+(define-public (create-bill)
+  (begin
+    ;; check first the status of escrow contract
+    (var-set state-seller u1)
+    (ok true)
+  )
+)
+
 ;; Buyer accepts the bill, by sending funds to escrow. (Technically, sends STX to smart contract and locked)
 (define-public (accept-bill (funding uint))
   (begin
@@ -65,21 +93,9 @@
   )
 )
 
-;; Return status of contract
-;; Question - how do I return all the variables? map? tuple? print?
-(define-public (status-of-contract)
+(define-public (create-bill-x (total-price uint))
   (begin
-    (ok (var-get buyer-funds))
-)
-)
-;; Seller creates a bill.
-;; Possibly then sends the bill to buyer via email.
-;; Technically, seller creates an instance of smart
-;; contract and sends STX to the contract at the same time.
-;; How does try! work again?
-(define-public (create-bill (total-price uint))
-(begin
-(try! (stx-transfer? total-price tx-sender (as-contract contract-caller)))
-(ok true)
-)
+    (try! (stx-transfer? total-price tx-sender (as-contract contract-caller)))
+    (ok true)
+  )
 )
