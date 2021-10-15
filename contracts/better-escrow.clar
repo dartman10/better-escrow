@@ -84,18 +84,18 @@
     (asserts! (and 
                   (
                     and 
-                    (is-eq (var-get state-seller) u0) 
-                    (is-eq (var-get state-buyer) u0)
+                    (is-eq (var-get state-seller)  u0) 
+                    (is-eq (var-get state-buyer)   u0)
                   ) 
                   (
                     is-eq (var-get state-mediator) u0
                   )
               )              
               (err "lol")
-    )
+    ) ;; /asserts!
     (var-set state-seller u1)
     (ok "nice")
-  )
+  ) ;; /begin
 )
 
 ;; Error found in contract better-escrow
