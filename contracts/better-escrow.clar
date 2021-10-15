@@ -80,10 +80,28 @@
 (define-public (create-bill)
   (begin
     ;; check first the status of escrow contract
+    ;; (asserts! (is-eq (var-get state-seller) u0) (err "omg"))
+    (asserts! (and 
+                  (
+                    and 
+                    (is-eq (var-get state-seller) u0) 
+                    (is-eq (var-get state-buyer) u0)
+                  ) 
+                  (
+                    is-eq (var-get state-mediator) u0
+                  )
+              )              
+              (err "lol")
+    )
     (var-set state-seller u1)
-    (ok true)
+    (ok "nice")
   )
 )
+
+;; Error found in contract better-escrow
+;; Analysis error: detected two execution paths, returning two different expression types (got 'uint' and '(response bool UnknownType)')
+;; ------------------------------------------
+
 
 ;; Buyer accepts the bill, by sending funds to escrow. (Technically, sends STX to smart contract and locked)
 (define-public (accept-bill (funding uint))
@@ -99,3 +117,7 @@
     (ok true)
   )
 )
+
+
+;; https://discord.com/channels/621759717756370964/872124843225653278/894763920252870707
+;; https://discord.com/channels/621759717756370964/831629305573408828/851534492980346911 
