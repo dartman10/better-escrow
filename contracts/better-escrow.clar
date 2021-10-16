@@ -85,15 +85,11 @@
   )
 )
 
-;; Seller creates a bill.
-;; Possibly then sends the bill to buyer via email.
-;; Technically, seller creates an instance of smart
-;; contract and sends STX to the contract at the same time.
-;; How does try! work again?
-(define-public (create-bill)
+;; Seller sends a bill.
+;; Before state : [0][0][0]
+;; After  state : [1][0][0]
+(define-public (bill-create)
   (begin
-    ;; check first the status of escrow contract
-    ;; (asserts! (is-eq (var-get state-seller) u0) (err "omg"))
     (asserts! (and 
                   (
                     and 
@@ -105,17 +101,18 @@
                   )
               )              
               (err "lol")
-    ) ;; /asserts!
+    ) ;; <asserts! end>
     (var-set state-seller u1)
     (ok "nice")
-  ) ;; /begin
+  ) ;; <begin end>
 )
 
-;; Buyer accepts terms of the bill, no sending funds yet.
-(define-public (accept-bill)
+;; Buyer accepts terms of the bill, no sending of funds yet.
+;; Before state : [1][0][0]
+;; After  state : [1][1][0]
+(define-public (bill-accept)
   (begin
-    ;; check first the status of escrow contract
-    (asserts! (and 
+    (asserts! (and    
                   (
                     and 
                     (is-eq (var-get state-seller)  u1) 
@@ -128,6 +125,77 @@
               (err "lol")
     ) ;; /asserts!
     (var-set state-buyer u1)
+    (ok "nice")
+  ) ;; /begin
+)
+
+;; Seller accepts Buyer and confirm.  Sends fund and locked.
+;; Before state : [1][1][0]
+;; After  state : [2][1][0]
+(define-public (fund-seller)
+  (begin
+    ;; check first the status of escrow contract
+    (asserts! (and 
+                  (
+                    and 
+                    (is-eq (var-get state-seller)  u1) 
+                    (is-eq (var-get state-buyer)   u1)
+                  ) 
+                  (
+                    is-eq (var-get state-mediator) u0
+                  )
+              )              
+              (err "lol")
+    ) ;; /asserts!
+    (var-set state-seller u2)
+    (ok "nice")
+  ) ;; /begin
+)
+
+;; Buyer reviews seller fund and send own fund. Contract now locked and loaded.
+;; Before state : [2][1][0]
+;; After  state : [2][2][0]
+(define-public (fund-buyer)
+  (begin
+    ;; check first the status of escrow contract
+    (asserts! (and 
+                  (
+                    and 
+                    (is-eq (var-get state-seller)  u2) 
+                    (is-eq (var-get state-buyer)   u1)
+                  ) 
+                  (
+                    is-eq (var-get state-mediator) u0
+                  )
+              )              
+              (err "lol")
+    ) ;; /asserts!
+    (var-set state-buyer u2)
+    (ok "nice")
+  ) ;; /begin
+)
+
+;; Buyer signals product received and good condition.
+;; Buyer release payment to seller.
+;; Contract releases collaterals too.
+;; Before state : [2][2][0]
+;; After  state : [2][3][0]
+(define-public (fund-release)
+  (begin
+    ;; check first the status of escrow contract
+    (asserts! (and 
+                  (
+                    and 
+                    (is-eq (var-get state-seller)  u2) 
+                    (is-eq (var-get state-buyer)   u2)
+                  ) 
+                  (
+                    is-eq (var-get state-mediator) u0
+                  )
+              )              
+              (err "lol")
+    ) ;; /asserts!
+    (var-set state-buyer u3)
     (ok "nice")
   ) ;; /begin
 )
