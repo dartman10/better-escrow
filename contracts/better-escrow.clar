@@ -26,10 +26,18 @@
 ;;(define-constant better-escrow (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
 (define-constant better-escrow (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
 
-;; error constants
+;; --------------------
+;;  Constants
+;; --------------------
 (define-constant ERR_STX_TRANSFER u0)
 
-;; data maps and vars
+;; --------------------
+;;  Variables
+;; --------------------
+(define-data-var principal-seller   (optional principal) none)  ;; why do I need "optional" here?
+(define-data-var principal-buyer    (optional principal) none)
+(define-data-var principal-mediator (optional principal) none)
+
 (define-data-var state-seller   uint u0)  ;; seller status - 0, 1, 2, 3, 4
 (define-data-var state-buyer    uint u0)
 (define-data-var state-mediator uint u0)
@@ -73,6 +81,18 @@
   (ok contract-caller)
 )
 
+(define-read-only (get-principal-seller)
+  (ok (var-get principal-seller))
+)
+
+(define-read-only (get-principal-buyer)
+  (ok (var-get principal-buyer))
+)
+
+(define-read-only (get-principal-mediator)
+  (ok (var-get principal-mediator))
+)
+
 (define-read-only (get-price)
   (ok (var-get price))
 )
@@ -102,8 +122,9 @@
               )              
               (err "lol")
     ) ;; <asserts! end>
+    (var-set principal-seller (some tx-sender))
     (var-set state-seller u1)
-    (ok "nice")
+    (ok (status-of-contract))
   ) ;; <begin end>
 )
 
