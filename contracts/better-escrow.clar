@@ -43,8 +43,21 @@
 ;; public functions
 
 ;; echo function - to check if contract is reachable
-(define-read-only (echo (shoutOut (string-ascii 100)))
-   (ok shoutOut)
+;; make this part of trait
+(define-read-only (echo (shout-out (string-ascii 100)))
+   (ok shout-out)
+ )
+
+;; help function - return helpful tips and usage
+;; make this part of trait
+(define-read-only (help)
+   (ok "help is on the way")
+ )
+
+;; about function - desribe this contract
+;; make this part of trait
+(define-read-only (about)
+   (ok "better escrow is the escrow.com killer")
  )
 
 ;; To verify Better Escrow is indeed the contract owner of this instance of smart contract.
@@ -98,17 +111,25 @@
   ) ;; /begin
 )
 
-;; Error found in contract better-escrow
-;; Analysis error: detected two execution paths, returning two different expression types (got 'uint' and '(response bool UnknownType)')
-;; ------------------------------------------
-
-
-;; Buyer accepts the bill, by sending funds to escrow. (Technically, sends STX to smart contract and locked)
-(define-public (accept-bill (funding uint))
+;; Buyer accepts terms of the bill, no sending funds yet.
+(define-public (accept-bill)
   (begin
-    (var-set buyer-funds funding)
-    (ok true)
-  )
+    ;; check first the status of escrow contract
+    (asserts! (and 
+                  (
+                    and 
+                    (is-eq (var-get state-seller)  u1) 
+                    (is-eq (var-get state-buyer)   u0)
+                  ) 
+                  (
+                    is-eq (var-get state-mediator) u0
+                  )
+              )              
+              (err "lol")
+    ) ;; /asserts!
+    (var-set state-buyer u1)
+    (ok "nice")
+  ) ;; /begin
 )
 
 (define-public (create-bill-x (total-price uint))
