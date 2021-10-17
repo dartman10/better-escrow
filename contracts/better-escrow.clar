@@ -30,8 +30,8 @@
 ;;(define-constant better-escrow (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
 ;;(define-constant better-escrow2 (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
 ;;(define-data-var better-escrow1 principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5) ;; Clarinet
-(define-data-var better-escrow (optional principal) none)
-;;(define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
+;;(define-data-var better-escrow (optional principal) none)
+(define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
 
 ;; --------------------
 ;;  Variables
@@ -72,7 +72,8 @@
 
 ;; To verify Better Escrow is indeed the contract owner of this instance of smart contract.
 (define-read-only (get-contract-owner)
-  (ok (var-get better-escrow))
+  ;;(ok (var-get better-escrow))
+  (ok better-escrow)
 )
 
 (define-read-only (get-tx-sender)
@@ -174,10 +175,7 @@
               (err u2)
     ) ;; /asserts!
     (asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err u1))    
-    ;;(transfer-me)
-    ;;(ok (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow)))))
-    (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow))))  ;; hmmm, try! returns a uint. what's the value then?
-    ;;(unwrap-panic (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow)))))
+    (try! (transfer-me))  ;; too many try!s
     (var-set state-seller u2)
     (ok "1234567")
   ) ;; /begin
@@ -237,13 +235,21 @@
 
 (define-private (transfer-me)
   (begin
-  ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
-  ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
-    (ok (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow)))))
+    ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
+    ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
+    ;;(ok (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow)))))
     ;;(unwrap-panic (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow))))
     ;;(ok true)
+    (try! (stx-transfer? u10 tx-sender better-escrow))  ;; hmmm, try! returns a uint. what's the value then?
+    ;;(try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow))))  ;; hmmm, try! returns a uint. what's the value then?
+    (ok u0)
   )
 )
+
+;;(define-private (get-better-escrow)
+;;  (var-get)
+;;  (unwrap-panic (var-get better-escrow))))
+;;)
 
 (define-private (transfer-you)
   (begin
