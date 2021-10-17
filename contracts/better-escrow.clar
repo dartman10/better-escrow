@@ -25,7 +25,7 @@
 ;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
 ;;(define-constant better-escrow (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
 (define-constant better-escrow2 (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
-(define-data-var better-escrow1 principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5) ;; Clarinet
+;;(define-data-var better-escrow1 principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5) ;; Clarinet
 (define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
 
 
@@ -40,6 +40,8 @@
 (define-data-var principal-seller   (optional principal) none)  ;; why do I need "optional" here?
 (define-data-var principal-buyer    (optional principal) none)
 (define-data-var principal-mediator (optional principal) none)
+
+;;(define-data-var principal-buyer principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)
 
 (define-data-var state-seller   uint u0)  ;; seller status - 0, 1, 2, 3, 4
 (define-data-var state-buyer    uint u0)
@@ -173,17 +175,10 @@
               (err "lol")
     ) ;; /asserts!
     (asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err "really?"))    
- ;;   (stx-transfer? u100 tx-sender (as-contract tx-sender))
     (transfer-me)
     (var-set state-seller u2)
     (ok "nice")
   ) ;; /begin
-)
-
-(define-private (transfer-me)
-  ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
-  ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
-  (unwrap-panic (stx-transfer? u10 tx-sender better-escrow))
 )
 
 ;; Buyer reviews seller fund and send own fund. Contract now locked and loaded.
@@ -204,6 +199,8 @@
               )              
               (err "lol")
     ) ;; /asserts!
+    (asserts! (is-eq (some tx-sender) (var-get principal-buyer)) (err "really?")) 
+    (transfer-me)
     (var-set state-buyer u2)
     (ok "nice")
   ) ;; /begin
@@ -229,14 +226,25 @@
               )              
               (err "lol")
     ) ;; /asserts!
+    ;;(asserts! (is-eq (some tx-sender) (var-get principal-buyer)) (err "really?")) 
+    ;;(transfer-you)
     (var-set state-buyer u3)
     (ok "nice")
   ) ;; /begin
 )
 
-(define-public (create-bill-x (total-price uint))
+(define-private (transfer-me)
+  ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
+  ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
+  (unwrap-panic (stx-transfer? u10 tx-sender better-escrow))
+)
+
+(define-private (transfer-you)
   (begin
-    (try! (stx-transfer? total-price tx-sender (as-contract contract-caller)))
-    (ok true)
+  ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
+  ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
+  ;;  (unwrap-panic (stx-transfer? u10 better-escrow (var-get principal-buyer)))
+  ;;(unwrap-panic (stx-transfer? u10 better-escrow (var-get principal-seller)))
+  (ok "po")
   )
 )
