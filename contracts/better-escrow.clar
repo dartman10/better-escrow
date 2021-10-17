@@ -24,7 +24,10 @@
 
 ;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
 ;;(define-constant better-escrow (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
-(define-constant better-escrow (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
+(define-constant better-escrow2 (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
+(define-data-var better-escrow1 principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5) ;; Clarinet
+(define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
+
 
 ;; --------------------
 ;;  Constants
@@ -170,9 +173,29 @@
               (err "lol")
     ) ;; /asserts!
     (asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err "really?"))    
+ ;;   (stx-transfer? u100 tx-sender (as-contract tx-sender))
+    (transfer-me)
     (var-set state-seller u2)
     (ok "nice")
+ ;;      (stx-transfer? u100 tx-sender (as-contract tx-sender))
+ 
   ) ;; /begin
+)
+
+(define-private (transfer-me)
+ ;; (begin
+ ;;   (asserts! 
+ ;;      (stx-transfer? u100 tx-sender (as-contract tx-sender))
+ ;;      (err "whatev")
+ ;;   )
+    ;;(ok "nice")
+  ;;)
+;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
+  ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
+
+  (unwrap-panic (stx-transfer? u10 tx-sender better-escrow))
+
+  ;;better-escrow
 )
 
 ;; Buyer reviews seller fund and send own fund. Contract now locked and loaded.
