@@ -20,28 +20,25 @@
 ;; Enough talk.  Let's do this.
 ;; ------------------------------------------
 
-;; constants
-
-;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
-;;(define-constant better-escrow (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
-(define-constant better-escrow2 (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
-;;(define-data-var better-escrow1 principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5) ;; Clarinet
-(define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
-
 
 ;; --------------------
 ;;  Constants
 ;; --------------------
 (define-constant ERR_STX_TRANSFER u0)
 
+;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
+;;(define-constant better-escrow (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
+;;(define-constant better-escrow2 (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
+;;(define-data-var better-escrow1 principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5) ;; Clarinet
+(define-data-var better-escrow (optional principal) none)
+;;(define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
+
 ;; --------------------
 ;;  Variables
 ;; --------------------
-(define-data-var principal-seller   (optional principal) none)  ;; why do I need "optional" here?
+(define-data-var principal-seller   (optional principal) none)  ;; why do I need "optional" here? so i can set to "none"?
 (define-data-var principal-buyer    (optional principal) none)
 (define-data-var principal-mediator (optional principal) none)
-
-;;(define-data-var principal-buyer principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)
 
 (define-data-var state-seller   uint u0)  ;; seller status - 0, 1, 2, 3, 4
 (define-data-var state-buyer    uint u0)
@@ -75,7 +72,7 @@
 
 ;; To verify Better Escrow is indeed the contract owner of this instance of smart contract.
 (define-read-only (get-contract-owner)
-  (ok better-escrow)
+  (ok (var-get better-escrow))
 )
 
 (define-read-only (get-tx-sender)
@@ -127,6 +124,8 @@
               )              
               (err "lol")
     ) ;; <asserts! end>
+
+    ;;(var-set better-escrow (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5"))
     (var-set principal-seller (some tx-sender))
     (var-set state-seller u1)
     (ok (status-of-contract))
@@ -172,12 +171,15 @@
                     is-eq (var-get state-mediator) u0
                   )
               )              
-              (err "lol")
+              (err u2)
     ) ;; /asserts!
-    (asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err "really?"))    
-    (transfer-me)
+    (asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err u1))    
+    ;;(transfer-me)
+    ;;(ok (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow)))))
+    (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow))))  ;; hmmm, try! returns a uint. what's the value then?
+    ;;(unwrap-panic (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow)))))
     (var-set state-seller u2)
-    (ok "nice")
+    (ok "1234567")
   ) ;; /begin
 )
 
@@ -200,7 +202,7 @@
               (err "lol")
     ) ;; /asserts!
     (asserts! (is-eq (some tx-sender) (var-get principal-buyer)) (err "really?")) 
-    (transfer-me)
+    ;;(transfer-me)
     (var-set state-buyer u2)
     (ok "nice")
   ) ;; /begin
@@ -234,9 +236,13 @@
 )
 
 (define-private (transfer-me)
+  (begin
   ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
   ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
-  (unwrap-panic (stx-transfer? u10 tx-sender better-escrow))
+    (ok (try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow)))))
+    ;;(unwrap-panic (stx-transfer? u10 tx-sender (unwrap-panic (var-get better-escrow))))
+    ;;(ok true)
+  )
 )
 
 (define-private (transfer-you)
@@ -244,7 +250,7 @@
   ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
   ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
   ;;  (unwrap-panic (stx-transfer? u10 better-escrow (var-get principal-buyer)))
-  ;;(unwrap-panic (stx-transfer? u10 better-escrow (var-get principal-seller)))
+  ;;(unwrap-panic (stx-transfer? u10 (some better-escrow) (unwap-panic (var-get principal-seller))))
   (ok "po")
   )
 )
