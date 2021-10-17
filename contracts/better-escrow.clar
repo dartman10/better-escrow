@@ -197,10 +197,10 @@
                     is-eq (var-get state-mediator) u0
                   )
               )              
-              (err "lol")
+              (err u777)
     ) ;; /asserts!
-    (asserts! (is-eq (some tx-sender) (var-get principal-buyer)) (err "really?")) 
-    ;;(transfer-me)
+    (asserts! (is-eq (some tx-sender) (var-get principal-buyer)) (err u666)) 
+    (try! (transfer-me))  ;; how can i lessen the try!?
     (var-set state-buyer u2)
     (ok "nice")
   ) ;; /begin
