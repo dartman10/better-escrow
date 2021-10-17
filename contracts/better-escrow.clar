@@ -177,25 +177,13 @@
     (transfer-me)
     (var-set state-seller u2)
     (ok "nice")
- ;;      (stx-transfer? u100 tx-sender (as-contract tx-sender))
- 
   ) ;; /begin
 )
 
 (define-private (transfer-me)
- ;; (begin
- ;;   (asserts! 
- ;;      (stx-transfer? u100 tx-sender (as-contract tx-sender))
- ;;      (err "whatev")
- ;;   )
-    ;;(ok "nice")
-  ;;)
-;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
+  ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
   ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
-
   (unwrap-panic (stx-transfer? u10 tx-sender better-escrow))
-
-  ;;better-escrow
 )
 
 ;; Buyer reviews seller fund and send own fund. Contract now locked and loaded.
