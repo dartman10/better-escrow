@@ -145,6 +145,7 @@
               )              
               (err "lol")
     ) ;; /asserts!
+    (var-set principal-buyer (some tx-sender))
     (var-set state-buyer u1)
     (ok "nice")
   ) ;; /begin
@@ -168,6 +169,7 @@
               )              
               (err "lol")
     ) ;; /asserts!
+    (asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err "really?"))    
     (var-set state-seller u2)
     (ok "nice")
   ) ;; /begin
