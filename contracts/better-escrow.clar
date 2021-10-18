@@ -217,8 +217,8 @@
     (asserts! (and 
                   (
                     and 
-                    (is-eq (var-get state-seller)  u2) 
-                    (is-eq (var-get state-buyer)   u2)
+                    (is-eq (var-get state-seller)  u2222) 
+                    (is-eq (var-get state-buyer)   u2223)
                   ) 
                   (
                     is-eq (var-get state-mediator) u0
@@ -229,8 +229,9 @@
     ;;(asserts! (is-eq (some tx-sender) (var-get principal-buyer)) (err "really?")) 
     ;;(transfer-you)
     ;;(try! (stx-transfer? u10 better-escrow (unwrap-panic (var-get principal-buyer))))  ;; hmmm, try! returns a uint. what's the value then?
-      (try! (stx-transfer? u10 better-escrow (unwrap! (var-get principal-buyer) (err u727))))  ;; hmmm, try! returns a uint. what's the value then?
-
+    ;;(try! (stx-transfer? u10 tx-sender (unwrap-panic (var-get principal-buyer)))) 
+    ;;(try! (stx-transfer? u10 tx-sender (unwrap! (var-get principal-buyer) (err u726))))  ;; hmmm, try! returns a uint. what's the value then?
+    (try! (stx-transfer? u10 better-escrow (unwrap! (var-get principal-buyer) (err u727))))  ;; hmmm, try! returns a uint. what's the value then?
     (var-set state-buyer u3)
     (ok "nice")
 
