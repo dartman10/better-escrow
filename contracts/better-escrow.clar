@@ -240,7 +240,8 @@
     ;; as-contract replaces tx-sender inside the closure. get it? lol. easy-peasy.
 
     ;; This one works because DURING stx-transfer execution, it replaces tx-sender to contract principal.
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (var-get principal-buyer) (err u727)))))  ;; 
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (var-get principal-buyer) (err u727)))))  ;; send funds to buyer
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (var-get principal-seller) (err u728)))))  ;; send funds to seller
 
     ;; This returns an err u4 because as-contract converts tx-sender to contract principal prior to executing stx-transfer, so stx-transfer naturally fails
     ;;(try! (stx-transfer? u10 (as-contract tx-sender) (unwrap! (var-get principal-buyer) (err u727)))) ;; 
