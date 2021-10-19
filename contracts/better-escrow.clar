@@ -139,7 +139,6 @@
               (err "lol")
     ) ;; <asserts! end>
 
-    ;;(var-set better-escrow (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5"))
     (set-principal-seller (some tx-sender))
     (set-state-seller u1)
     (ok (status-of-contract))
@@ -189,7 +188,7 @@
     ) ;; /asserts!
     ;;(asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err u1))
     (asserts! (is-eq (some tx-sender) (get-principal-seller)) (err u1))    
-    (try! (transfer-me))  ;; too many try!s
+    (try! (transfer-to-contract))  ;; too many try!s
     (set-state-seller u2)
     (ok (status-of-contract))
   ) ;; /begin
@@ -214,7 +213,7 @@
               (err u777)
     ) ;; /asserts!
     (asserts! (is-eq (some tx-sender) (get-principal-buyer)) (err u666)) 
-    (try! (transfer-me))  ;; how can i lessen the try!?
+    (try! (transfer-to-contract))   ;; try! returns a uint. try! is need for intermediate blah blah
     (set-state-buyer u2)
     (ok (status-of-contract))
   ) ;; /begin
@@ -242,15 +241,24 @@
     ) ;; /asserts!
 
     ;; Only the buyer can release the funds.
-    (asserts! (is-eq tx-sender 
-                     (unwrap! (get-principal-buyer)
-                              (err u113)
-                     )
-              ) ;; unwrap is required for optional principal --> Analysis error: expecting expression of type '(optional principal)', found 'principal'
-              (err u112)
-    )
+    ;; unwrap is required for optional principal --> Analysis error: expecting expression of type '(optional principal)', found 'principal'
+    (asserts! (is-eq tx-sender (unwrap! (get-principal-buyer) (err u113))) (err u112))
+    (try! (transfer-from-contract))     ;; try! returns a uint. try! is need for intermediate blah blah
+    (set-state-buyer u3)
+    (ok (status-of-contract))
+  ) ;; /begin
+)
 
-    ;; hmmm, try! returns a uint. what's the value then?
+(define-private (transfer-to-contract)
+  (begin
+    (try! (stx-transfer? u10 tx-sender (as-contract tx-sender)))  ;; hmmm, try! returns a uint. what's the value then?
+    (ok u0)
+  )
+)
+
+(define-private (transfer-from-contract)
+  (begin
+
     ;; as-contract replaces tx-sender inside the closure. get it? lol. easy-peasy.
 
     ;; This one works because DURING stx-transfer execution, it replaces tx-sender to contract principal.
@@ -259,28 +267,7 @@
 
     ;; This returns an err u4 because as-contract converts tx-sender to contract principal prior to executing stx-transfer, so stx-transfer naturally fails
     ;;(try! (stx-transfer? u10 (as-contract tx-sender) (unwrap! (var-get principal-buyer) (err u727)))) ;; 
- 
-    (set-state-buyer u3)
-    (ok (status-of-contract))
 
-  ) ;; /begin
-)
-
-(define-private (transfer-me)
-  (begin
-    ;;(try! (stx-transfer? u10 tx-sender better-escrow))  ;; hmmm, try! returns a uint. what's the value then?
-    (try! (stx-transfer? u10 tx-sender (as-contract tx-sender)))  ;; hmmm, try! returns a uint. what's the value then?
-
-    (ok u0)
-  )
-)
-
-(define-private (transfer-you)
-  (begin
-  ;;(as-contract (unwrap-panic (stx-transfer? u100 tx-sender tx-sender)))
-  ;;(unwrap-panic (stx-transfer? u100 tx-sender better-escrow))
-  ;;  (unwrap-panic (stx-transfer? u10 better-escrow (var-get principal-buyer)))
-  ;;(unwrap-panic (stx-transfer? u10 (some better-escrow) (unwap-panic (var-get principal-seller))))
   (ok "po")
   )
 )
