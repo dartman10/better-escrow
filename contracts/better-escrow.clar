@@ -31,7 +31,7 @@
 ;;(define-constant better-escrow2 (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
 ;;(define-data-var better-escrow1 principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5) ;; Clarinet
 ;;(define-data-var better-escrow (optional principal) none)
-(define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
+;;(define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
 
 ;; --------------------
 ;;  Variables
@@ -55,56 +55,69 @@
 ;; echo function - to check if contract is reachable
 ;; make this part of trait
 (define-read-only (echo (shout-out (string-ascii 100)))
-   (ok shout-out)
- )
+   (ok shout-out))
 
 ;; help function - return helpful tips and usage
 ;; make this part of trait
 (define-read-only (help)
-   (ok "help is on the way")
- )
+   (ok "help is on the way"))
 
 ;; about function - desribe this contract
 ;; make this part of trait
 (define-read-only (about)
-   (ok "better escrow is the escrow.com killer")
- )
-
-;; To verify Better Escrow is indeed the contract owner of this instance of smart contract.
-(define-read-only (get-contract-owner)
-  ;;(ok (var-get better-escrow))
-  (ok better-escrow)
-)
+   (ok "better escrow is the escrow.com killer"))
 
 (define-read-only (get-tx-sender)
-  (ok tx-sender)
-)
+  (ok tx-sender))
 
 (define-read-only (get-contract-caller)
-  (ok contract-caller)
-)
+  (ok contract-caller))
 
 (define-read-only (get-principal-seller)
-  (ok (var-get principal-seller))
-)
+  (var-get principal-seller))
+
+(define-private (set-principal-seller (principal-value (optional principal)))
+  (var-set principal-seller principal-value))
 
 (define-read-only (get-principal-buyer)
-  (ok (var-get principal-buyer))
-)
+  (var-get principal-buyer))
+
+(define-private (set-principal-buyer (principal-value (optional principal)))
+  (var-set principal-buyer principal-value))
 
 (define-read-only (get-principal-mediator)
-  (ok (var-get principal-mediator))
-)
+  (var-get principal-mediator))
+
+(define-read-only (get-state-seller)
+  (var-get state-seller))
+
+(define-private (set-state-seller (state-value uint ))
+  (var-set state-seller state-value))
+
+(define-read-only (get-state-buyer)
+  (var-get state-buyer))
+
+(define-private (set-state-buyer (state-value uint ))
+  (var-set state-buyer state-value))
+
+(define-read-only (get-state-mediator)
+  (var-get state-mediator))
+
+(define-private (set-state-mediator (state-value uint ))
+  (var-set state-mediator state-value))
 
 (define-read-only (get-price)
-  (ok (var-get price))
-)
+  (var-get price))
 
 ;; Return status of contract
 ;; Question - how do I return all the variables? map? tuple? print?
 (define-public (status-of-contract)
   (begin
-    (ok (list (var-get state-seller) (var-get state-buyer) (var-get state-mediator) ))
+    (ok (list (get-state-seller) 
+              (get-state-buyer) 
+              (get-state-mediator)
+        )
+    )
   )
 )
 
@@ -116,19 +129,19 @@
     (asserts! (and 
                   (
                     and 
-                    (is-eq (var-get state-seller)  u0) 
-                    (is-eq (var-get state-buyer)   u0)
+                    (is-eq (get-state-seller)  u0) 
+                    (is-eq (get-state-buyer)   u0)
                   ) 
                   (
-                    is-eq (var-get state-mediator) u0
+                    is-eq (get-state-mediator) u0
                   )
               )              
               (err "lol")
     ) ;; <asserts! end>
 
     ;;(var-set better-escrow (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5"))
-    (var-set principal-seller (some tx-sender))
-    (var-set state-seller u1)
+    (set-principal-seller (some tx-sender))
+    (set-state-seller u1)
     (ok (status-of-contract))
   ) ;; <begin end>
 )
@@ -141,18 +154,18 @@
     (asserts! (and    
                   (
                     and 
-                    (is-eq (var-get state-seller)  u1) 
-                    (is-eq (var-get state-buyer)   u0)
+                    (is-eq (get-state-seller)  u1) 
+                    (is-eq (get-state-buyer)   u0)
                   ) 
                   (
-                    is-eq (var-get state-mediator) u0
+                    is-eq (get-state-mediator) u0
                   )
               )              
               (err "lol")
     ) ;; /asserts!
-    (var-set principal-buyer (some tx-sender))
-    (var-set state-buyer u1)
-    (ok "nice")
+    (set-principal-buyer (some tx-sender))
+    (set-state-buyer u1)
+    (ok (status-of-contract))
   ) ;; /begin
 )
 
@@ -165,19 +178,20 @@
     (asserts! (and 
                   (
                     and 
-                    (is-eq (var-get state-seller)  u1) 
-                    (is-eq (var-get state-buyer)   u1)
+                    (is-eq (get-state-seller)  u1) 
+                    (is-eq (get-state-buyer)   u1)
                   ) 
                   (
-                    is-eq (var-get state-mediator) u0
+                    is-eq (get-state-mediator) u0
                   )
               )              
               (err u2)
     ) ;; /asserts!
-    (asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err u1))    
+    ;;(asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err u1))
+    (asserts! (is-eq (some tx-sender) (get-principal-seller)) (err u1))    
     (try! (transfer-me))  ;; too many try!s
-    (var-set state-seller u2)
-    (ok "1234567")
+    (set-state-seller u2)
+    (ok (status-of-contract))
   ) ;; /begin
 )
 
@@ -190,19 +204,19 @@
     (asserts! (and 
                   (
                     and 
-                    (is-eq (var-get state-seller)  u2) 
-                    (is-eq (var-get state-buyer)   u1)
+                    (is-eq (get-state-seller)  u2) 
+                    (is-eq (get-state-buyer)   u1)
                   ) 
                   (
-                    is-eq (var-get state-mediator) u0
+                    is-eq (get-state-mediator) u0
                   )
               )              
               (err u777)
     ) ;; /asserts!
-    (asserts! (is-eq (some tx-sender) (var-get principal-buyer)) (err u666)) 
+    (asserts! (is-eq (some tx-sender) (get-principal-buyer)) (err u666)) 
     (try! (transfer-me))  ;; how can i lessen the try!?
-    (var-set state-buyer u2)
-    (ok "nice")
+    (set-state-buyer u2)
+    (ok (status-of-contract))
   ) ;; /begin
 )
 
@@ -217,11 +231,11 @@
     (asserts! (and 
                   (
                     and 
-                    (is-eq (var-get state-seller)  u2) 
-                    (is-eq (var-get state-buyer)   u2)
+                    (is-eq (get-state-seller)  u2) 
+                    (is-eq (get-state-buyer)   u2)
                   ) 
                   (
-                    is-eq (var-get state-mediator) u0
+                    is-eq (get-state-mediator) u0
                   )
               )              
               (err u111)
@@ -229,7 +243,7 @@
 
     ;; Only the buyer can release the funds.
     (asserts! (is-eq tx-sender 
-                     (unwrap! (var-get principal-buyer)
+                     (unwrap! (get-principal-buyer)
                               (err u113)
                      )
               ) ;; unwrap is required for optional principal --> Analysis error: expecting expression of type '(optional principal)', found 'principal'
@@ -240,14 +254,14 @@
     ;; as-contract replaces tx-sender inside the closure. get it? lol. easy-peasy.
 
     ;; This one works because DURING stx-transfer execution, it replaces tx-sender to contract principal.
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (var-get principal-buyer) (err u727)))))  ;; send funds to buyer
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (var-get principal-seller) (err u728)))))  ;; send funds to seller
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-buyer) (err u727)))))  ;; send funds to buyer
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u728)))))  ;; send funds to seller
 
     ;; This returns an err u4 because as-contract converts tx-sender to contract principal prior to executing stx-transfer, so stx-transfer naturally fails
     ;;(try! (stx-transfer? u10 (as-contract tx-sender) (unwrap! (var-get principal-buyer) (err u727)))) ;; 
  
-    (var-set state-buyer u3)
-    (ok "nice")
+    (set-state-buyer u3)
+    (ok (status-of-contract))
 
   ) ;; /begin
 )
