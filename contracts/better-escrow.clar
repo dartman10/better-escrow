@@ -227,6 +227,15 @@
               (err u111)
     ) ;; /asserts!
 
+    ;; Only the buyer can release the funds.
+    (asserts! (is-eq tx-sender 
+                     (unwrap! (var-get principal-buyer)
+                              (err u113)
+                     )
+              ) ;; unwrap is required for optional principal --> Analysis error: expecting expression of type '(optional principal)', found 'principal'
+              (err u112)
+    )
+
     ;; hmmm, try! returns a uint. what's the value then?
     ;; as-contract replaces tx-sender inside the closure. get it? lol. easy-peasy.
 
