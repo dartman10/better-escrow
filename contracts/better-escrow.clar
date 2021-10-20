@@ -412,7 +412,7 @@
 ;;  2. Mediator agrees with Buyer, so contract will be nullified and give all money back.
 ;; Question is, who will sign? I think either for now is okay.
 ;; Before state : [5][5][2]
-;; After  state : [>=][5][4]
+;; After  state : [5][5][4]
 (define-public (mediator-decides-bad)
   (begin
     ;; Check if tx-sender is Mediator
@@ -428,6 +428,35 @@
     ) ;; /asserts!
 
     (set-state-mediator u4)
+    (ok (status-of-contract))
+  ) ;; /begin
+)
+
+;; Mediator decided bad, so do refund.
+;; Before state : [5][5][4]
+;; After  state : [>=5][>=5][4]
+(define-public (fund-refund)
+  (begin
+    ;; Buyer or Seller only
+    (asserts! (or
+                (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u118)))
+                (is-eq tx-sender (unwrap! (get-principal-seller) (err u119)))
+              )
+              (err u121)
+    ) ;; /asserts!
+    ;; check first the status of escrow contract
+    (asserts! (and  (is-eq (get-state-seller)   u5) 
+                    (is-eq (get-state-buyer)    u5)
+                    (is-eq (get-state-mediator) u4))
+              (err u111)
+    ) ;; /asserts!
+
+DO HERE!
+    ;; Only the buyer can release the funds.
+    ;; unwrap is required for optional principal --> Analysis error: expecting expression of type '(optional principal)', found 'principal'
+    (asserts! (is-eq tx-sender (unwrap! (get-principal-buyer) (err u113))) (err u112))
+    (try! (transfer-from-contract))     ;; try! returns a uint. try! is need for intermediate blah blah
+    (set-state-buyer u3)
     (ok (status-of-contract))
   ) ;; /begin
 )
