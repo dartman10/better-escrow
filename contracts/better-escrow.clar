@@ -280,6 +280,7 @@
 ;; =============================
 
 ;; Either the Seller or Buyer can request for a Mediator.
+;; Question: How would I know who requested the Mediator?
 ;; Once this happens:
 ;;   - Both Seller and Buyer has to sign if they like to cancel the mediator request;
 ;;   - The mediator has to sign contract as acceptance of responsibility.
@@ -312,12 +313,9 @@
   ) ;; /begin
 )
 
-;; Either the Seller or Buyer can request for a Mediator.
-;; Once this happens:
-;;   - Both Seller and Buyer has to sign if they like to cancel the mediator request;
-;;   - The mediator has to sign contract as acceptance of responsibility.
-;; Before state : [>=1][>=1][0]
-;; After  state : [>=1][>=1][1]
+;; Mediator accepts responsibility.
+;; Before state : [>=1][>=1][1]
+;; After  state : [>=1][>=1][2]
 (define-public (mediate-accept)
   (begin
     (asserts! (and (and (>= (get-state-seller) u1)
@@ -338,22 +336,98 @@
 )
 
 ;; Now that a Mediator accepted, both Seller and Buyer needs to signoff on acceptance
-;; Before state : [>=1][>=1][1]
-;; After  state : [5][>=1][1]
+;; Before state : [>=1 and <5][>=1][2]
+;; After  state : [5][>=1][2]
 (define-public (mediator-confirmation-seller)
   (begin
-    (asserts! (and (and (>= (get-state-seller) u1)
-                        (<  (get-state-seller) u5)
-                        (>= (get-state-buyer)  u1))
-                   (is-eq (get-state-mediator) u2))
-              (err u142)
-    ) ;; /asserts!
 
+    ;; Check if tx-sender is Seller
     (asserts! (is-eq tx-sender (unwrap! (get-principal-seller)  (err u1000)))
               (err u1001)
     ) ;; /asserts!
 
+    ;; Check contract state
+    (asserts! (and (>=    (get-state-seller)   u1)
+                   (<     (get-state-seller)   u5)
+                   (>=    (get-state-buyer)    u1)
+                   (is-eq (get-state-mediator) u2))
+              (err u142)
+    ) ;; /asserts!
+
     (set-state-seller u5)
+    (ok (status-of-contract))
+  ) ;; /begin
+)
+
+;; Now that a Mediator accepted, both Seller and Buyer needs to signoff on acceptance
+;; Before state : [>=1][>=1 and <5][2]
+;; After  state : [>=][5][2]
+(define-public (mediator-confirmation-buyer)
+  (begin
+    ;; Check if tx-sender is Buyer
+    (asserts! (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u1010)))
+              (err u1011)
+    ) ;; /asserts!
+
+    ;; Check contract state
+    (asserts! (and (>=    (get-state-seller)   u1)
+                   (>=    (get-state-buyer)    u1)
+                   (<     (get-state-buyer)    u5)
+                   (is-eq (get-state-mediator) u2))
+              (err u1012)
+    ) ;; /asserts!
+
+    (set-state-buyer u5)
+    (ok (status-of-contract))
+  ) ;; /begin
+)
+
+;; Mediator decides. Two possible outcomes (for now):
+;;  1. Mediator agrees with Seller, so contract will be exercised as agreed originally.
+;;  2. Mediator agrees with Buyer, so contract will be nullified and give all money back.
+;; Question is, who will sign?
+;; Before state : [5][5][2]
+;; After  state : [>=][5][3]
+(define-public (mediator-decides-good)
+  (begin
+    ;; Check if tx-sender is Mediator
+    (asserts! (is-eq tx-sender (unwrap! (get-principal-mediator)  (err u1020)))
+              (err u1021)
+    ) ;; /asserts!
+
+    ;; Check contract state
+    (asserts! (and (is-eq (get-state-seller)   u5)
+                   (is-eq (get-state-buyer)    u5)
+                   (is-eq (get-state-mediator) u2))
+              (err u1022)
+    ) ;; /asserts!
+
+    (set-state-mediator u3)
+    (ok (status-of-contract))
+  ) ;; /begin
+)
+
+;; Mediator decides. Two possible outcomes (for now):
+;;  1. Mediator agrees with Seller, so contract will be exercised as agreed originally.
+;;  2. Mediator agrees with Buyer, so contract will be nullified and give all money back.
+;; Question is, who will sign? I think either for now is okay.
+;; Before state : [5][5][2]
+;; After  state : [>=][5][4]
+(define-public (mediator-decides-bad)
+  (begin
+    ;; Check if tx-sender is Mediator
+    (asserts! (is-eq tx-sender (unwrap! (get-principal-mediator)  (err u1030)))
+              (err u1031)
+    ) ;; /asserts!
+
+    ;; Check contract state
+    (asserts! (and (is-eq (get-state-seller)   u5)
+                   (is-eq (get-state-buyer)    u5)
+                   (is-eq (get-state-mediator) u2))
+              (err u1032)
+    ) ;; /asserts!
+
+    (set-state-mediator u4)
     (ok (status-of-contract))
   ) ;; /begin
 )
