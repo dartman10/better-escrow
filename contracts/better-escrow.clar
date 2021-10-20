@@ -460,3 +460,12 @@ DO HERE!
     (ok (status-of-contract))
   ) ;; /begin
 )
+
+
+
+    (asserts! (or
+                (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u118)))
+                (is-eq tx-sender (unwrap! (get-principal-seller) (err u119)))
+              )
+              (err u121)
+    ) ;; /asserts!
