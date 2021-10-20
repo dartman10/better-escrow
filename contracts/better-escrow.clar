@@ -88,6 +88,9 @@
 (define-read-only (get-principal-mediator)
   (var-get principal-mediator))
 
+(define-private (set-principal-mediator (principal-value (optional principal)))
+  (var-set principal-mediator principal-value))  
+
 (define-read-only (get-state-seller)
   (var-get state-seller))
 
@@ -313,34 +316,44 @@
 ;; Once this happens:
 ;;   - Both Seller and Buyer has to sign if they like to cancel the mediator request;
 ;;   - The mediator has to sign contract as acceptance of responsibility.
-;; Before state : [>=1][>=1][0] or [>=1][>=1][0] 
-;; After  state : [>=1][>=1][1] or [>=1][>=1][1]
+;; Before state : [>=1][>=1][0]
+;; After  state : [>=1][>=1][1]
 (define-public (mediate-accept)
   (begin
-    (asserts! (and    
-                  (
-                    and 
-                    (>= (get-state-seller)  u1) 
-                    (>= (get-state-buyer)   u1)
-                  ) 
-                  (
-                    is-eq (get-state-mediator) u1
-                  )
-              )              
+    (asserts! (and (and (>= (get-state-seller) u1)
+                        (>= (get-state-buyer)  u1))
+                   (is-eq (get-state-mediator) u1))
               (err u141)
     ) ;; /asserts!
 
-    (asserts! (not
-                (or
-                  (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u128)))
-                  (is-eq tx-sender (unwrap! (get-principal-seller) (err u129)))
-                )
-              )
+    (asserts! (not  (or (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u128)))
+                        (is-eq tx-sender (unwrap! (get-principal-seller) (err u129)))))
               (err u131)
     ) ;; /asserts!
 
     (set-principal-mediator (some tx-sender))
     (set-state-mediator u2)
+    (ok (status-of-contract))
+  ) ;; /begin
+)
+
+;; Now that a Mediator accepted, both Seller and Buyer needs to signoff on acceptance
+;; Before state : [>=1][>=1][1]
+;; After  state : [5][>=1][1]
+(define-public (mediator-confirmation-seller)
+  (begin
+    (asserts! (and (and (>= (get-state-seller) u1)
+                        (<  (get-state-seller) u5)
+                        (>= (get-state-buyer)  u1))
+                   (is-eq (get-state-mediator) u2))
+              (err u142)
+    ) ;; /asserts!
+
+    (asserts! (is-eq tx-sender (unwrap! (get-principal-seller)  (err u1000)))
+              (err u1001)
+    ) ;; /asserts!
+
+    (set-state-seller u5)
     (ok (status-of-contract))
   ) ;; /begin
 )
