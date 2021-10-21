@@ -466,26 +466,26 @@
 )
 
 ;; Mediator decided good, so disburse funds appropriately.
-;; Before state : [5][5][4]
-;; After  state : [7][7][4]
+;; Before state : [5][5][3]
+;; After  state : [7][7][3]
 (define-public (fund-disburse)
   (begin
     ;; Buyer or Seller only
     (asserts! (or
-                (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u2118)))
-                (is-eq tx-sender (unwrap! (get-principal-seller) (err u2119)))
+                (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u3118)))
+                (is-eq tx-sender (unwrap! (get-principal-seller) (err u3119)))
               )
-              (err u2121)
+              (err u3121)
     ) ;; /asserts!
     ;; check first the status of escrow contract
     (asserts! (and  (is-eq (get-state-seller)   u5) 
                     (is-eq (get-state-buyer)    u5)
-                    (is-eq (get-state-mediator) u4))
-              (err u2111)
+                    (is-eq (get-state-mediator) u3))
+              (err u3111)
     ) ;; /asserts!
 
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-buyer) (err u2727)))))  ;; send funds to buyer
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u2728)))))  ;; send funds to seller
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-buyer) (err u3727)))))  ;; send funds to buyer
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u3728)))))  ;; send funds to seller
     (set-state-seller u7)
     (set-state-buyer  u7)
     (ok (status-of-contract))
