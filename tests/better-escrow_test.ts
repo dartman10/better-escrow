@@ -3,7 +3,7 @@ import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarine
 import { assertEquals } from 'https://deno.land/std@0.90.0/testing/asserts.ts';
 
 Clarinet.test({
-    name: "Testing bill-create function.",
+    name: "test function : (define-read-only (about))",
     async fn(chain: Chain, accounts: Map<string, Account>) {
 
         /* Assign wallets to be used for simulating the escrow participants - seller, buyer, mediator. */
@@ -12,14 +12,7 @@ Clarinet.test({
         let mediator  = accounts.get('wallet_7')!;
 
         let block = chain.mineBlock([
-            /* 
-             * Add transactions with: 
-             * Tx.contractCall(...)
-            */
-            /* Tx.contractCall('better-escrow', 'bill-create', [], seller.address),
-            */
            Tx.contractCall('better-escrow', 'about', [], seller.address),
-
         ]);
         assertEquals(block.receipts.length, 1);
         assertEquals(block.receipts[0].result.expectOk(), '"better escrow is the escrow.com killer"');
