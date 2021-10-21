@@ -2,3 +2,4 @@
 settings/Mainnet.toml
 settings/Testnet.toml
 history.txt
+tests/better-escrow_test_001.ts
