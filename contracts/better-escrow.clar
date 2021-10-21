@@ -1,20 +1,26 @@
-;; ------------------------------------------
+;; --------------------------------------------
 ;; better-escrow : The better escrow service.
-;; ------------------------------------------
+;; --------------------------------------------
 ;;
 ;; Actors : seller, buyer, mediator.
 ;;   1. Seller - creates a bill to be sent to buyer (creates an instance of escrow smart contract)
 ;;   2. Buyer - accepts the bill charges (in the smart contract)  and sends funds to escrow (into the same smart contract)
-;;   3. Mediator - needed in case of dispute. Not sure yet how to implement this.
+;;   3. Mediator - needed in case of dispute. An actual real attorney, maybe.
 ;;
 ;; The HOWs:
 ;;  1. Once a buyer principal is present, the contract instance becomes a multisig contract.
 ;;  2. When adding a mediator principal, both the seller and buyer should accept and sign the contract.
+;;  3. tbd
 ;;
 ;; Short term tactical solution, due to 3-week hackathon limit:
-;; - For now, use a map to keep track of active escrow contracts.
-;; Will wait for Stacks team to focus on GAIA off-chain storage in 2021 Q4.
-;; And because map is not iterable, limit one escrow per principal.
+;; - Only one active smart contract at any given time.  Meaning, others have to wait until live contract is done.
+;; - Use variables all over the place, but refactor later once everything is working.
+;; - Write separate functions for individual scenarios. Refactor later to remove duplicate codes.
+;;
+;; Future enhancements:
+;; - Use GAIA off-chain storage for persistent data
+;; - Enabling several instances of active escrow contracts.
+;; - C
 ;;
 ;; ------------------------------------------
 ;; Enough talk.  Let's do this.
@@ -434,38 +440,54 @@
 
 ;; Mediator decided bad, so do refund.
 ;; Before state : [5][5][4]
-;; After  state : [>=5][>=5][4]
+;; After  state : [6][6][4]
 (define-public (fund-refund)
   (begin
     ;; Buyer or Seller only
     (asserts! (or
-                (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u118)))
-                (is-eq tx-sender (unwrap! (get-principal-seller) (err u119)))
+                (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u2118)))
+                (is-eq tx-sender (unwrap! (get-principal-seller) (err u2119)))
               )
-              (err u121)
+              (err u2121)
     ) ;; /asserts!
     ;; check first the status of escrow contract
     (asserts! (and  (is-eq (get-state-seller)   u5) 
                     (is-eq (get-state-buyer)    u5)
                     (is-eq (get-state-mediator) u4))
-              (err u111)
+              (err u2111)
     ) ;; /asserts!
 
-DO HERE!
-    ;; Only the buyer can release the funds.
-    ;; unwrap is required for optional principal --> Analysis error: expecting expression of type '(optional principal)', found 'principal'
-    (asserts! (is-eq tx-sender (unwrap! (get-principal-buyer) (err u113))) (err u112))
-    (try! (transfer-from-contract))     ;; try! returns a uint. try! is need for intermediate blah blah
-    (set-state-buyer u3)
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-buyer) (err u2727)))))  ;; send funds to buyer
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u2728)))))  ;; send funds to seller
+    (set-state-seller u6)
+    (set-state-buyer  u6)
     (ok (status-of-contract))
-  ) ;; /begin
+  )
 )
 
-
-
+;; Mediator decided good, so disburse funds appropriately.
+;; Before state : [5][5][4]
+;; After  state : [7][7][4]
+(define-public (fund-disburse)
+  (begin
+    ;; Buyer or Seller only
     (asserts! (or
-                (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u118)))
-                (is-eq tx-sender (unwrap! (get-principal-seller) (err u119)))
+                (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u2118)))
+                (is-eq tx-sender (unwrap! (get-principal-seller) (err u2119)))
               )
-              (err u121)
+              (err u2121)
     ) ;; /asserts!
+    ;; check first the status of escrow contract
+    (asserts! (and  (is-eq (get-state-seller)   u5) 
+                    (is-eq (get-state-buyer)    u5)
+                    (is-eq (get-state-mediator) u4))
+              (err u2111)
+    ) ;; /asserts!
+
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-buyer) (err u2727)))))  ;; send funds to buyer
+    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u2728)))))  ;; send funds to seller
+    (set-state-seller u7)
+    (set-state-buyer  u7)
+    (ok (status-of-contract))
+  )
+)
