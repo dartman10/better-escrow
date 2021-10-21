@@ -1,6 +1,5 @@
 # better-escrow
- Better escrow app on Stacks blockchain. Where else?
+ 
+ Just Another Escrow App
 
- Better?  What do you mean better?  
- I know, I'm being humble.  I should really say the Best Escrow app. :) 
- This app is the escrow.com killer anyway.
+ Powered by Stacks
