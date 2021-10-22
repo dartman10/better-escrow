@@ -1,3 +1,6 @@
+
+;; DO THE PRICE NOW!!!\
+
 ;; --------------------------------------------
 ;; better-escrow : The better escrow service.
 ;; --------------------------------------------
@@ -131,7 +134,7 @@
 )
 
 ;; Seller sends a bill.
-;; Before state : [0][0][0]
+;; Before state : [0][0][0] or [u2, u3, u0] DO THIS!!!
 ;; After  state : [1][0][0]
 (define-public (bill-create)
   (begin

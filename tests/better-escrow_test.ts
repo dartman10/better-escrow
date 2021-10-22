@@ -30,10 +30,30 @@ Clarinet.test({
         ------------------------------------------------------------- 
         */
         block = chain.mineBlock([
-            Tx.contractCall('better-escrow', 'bill-create', [], seller.address),
-            Tx.contractCall('better-escrow', 'bill-accept', [], buyer.address),
-            Tx.contractCall('better-escrow', 'fund-seller', [], seller.address),
-            Tx.contractCall('better-escrow', 'fund-buyer', [], buyer.address),
+            Tx.contractCall('better-escrow', 'bill-create',  [], seller.address),
+            Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
+            Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
+            Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),
+            Tx.contractCall('better-escrow', 'fund-release', [], buyer.address),
+         ]);
+         assertEquals(block.receipts.length, 5);
+         assertEquals(block.receipts[0].result.expectOk().expectOk(), '[u1, u0, u0]');
+         assertEquals(block.receipts[1].result.expectOk().expectOk(), '[u1, u1, u0]');
+         assertEquals(block.receipts[2].result.expectOk().expectOk(), '[u2, u1, u0]');
+         assertEquals(block.receipts[3].result.expectOk().expectOk(), '[u2, u2, u0]');
+         assertEquals(block.receipts[4].result.expectOk().expectOk(), '[u2, u3, u0]');
+
+
+        /*
+        ------------------------------------------------------------ 
+           Simulate a smooth escrow transaction.                      
+        ------------------------------------------------------------- 
+        */
+        block = chain.mineBlock([
+            Tx.contractCall('better-escrow', 'bill-create',  [], seller.address),
+            Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
+            Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
+            Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),
             Tx.contractCall('better-escrow', 'fund-release', [], buyer.address),
          ]);
          assertEquals(block.receipts.length, 5);
