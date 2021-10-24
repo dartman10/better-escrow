@@ -23,7 +23,6 @@
 ;; Future enhancements:
 ;; - Use GAIA off-chain storage for persistent data
 ;; - Enabling several instances of active escrow contracts.
-;; - C
 ;;
 ;; ------------------------------------------
 ;; Enough talk.  Let's do this.
@@ -34,13 +33,6 @@
 ;;  Constants
 ;; --------------------
 (define-constant ERR_STX_TRANSFER u0)
-
-;; hardcoded Better Escrow as the contract owner for all instances of this smart contract
-;;(define-constant better-escrow (as-contract "ST13PBS66J69XNSKNCXJBG821QKRS42NFMJXPEJ7F")) ;; Testnet
-;;(define-constant better-escrow2 (as-contract "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5")) ;; Clarinet
-;;(define-data-var better-escrow1 principal 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5) ;; Clarinet
-;;(define-data-var better-escrow (optional principal) none)
-;;(define-constant better-escrow (as-contract 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5)) ;; Clarinet
 
 ;; --------------------
 ;;  Variables
@@ -62,7 +54,7 @@
 ;; public functions
 
 ;; echo function - to check if contract is reachable
-;; make this part of trait
+
 (define-read-only (echo (shout-out (string-ascii 100)))
    (ok shout-out))
 
@@ -136,23 +128,19 @@
 ;; Seller sends a bill.
 ;; Before state : [0][0][0] or [u2, u3, u0] DO THIS!!!
 ;; After  state : [1][0][0]
-(define-public (bill-create)
+(define-public (bill-create (price-request uint))
   (begin
-    (asserts! (and 
-                  (
-                    and 
-                    (is-eq (get-state-seller)  u0) 
-                    (is-eq (get-state-buyer)   u0)
-                  ) 
-                  (
-                    is-eq (get-state-mediator) u0
-                  )
-              )              
+
+    ;; check if contract status is eligible for the next round
+    (asserts! (and (is-eq (get-state-seller)   u0) 
+                   (is-eq (get-state-buyer)    u0)
+                   (is-eq (get-state-mediator) u0))              
               (err "lol")
     ) ;; <asserts! end>
 
     (set-principal-seller (some tx-sender))
     (set-state-seller u1)
+    (var-set price price-request)
     (ok (status-of-contract))
   ) ;; <begin end>
 )
@@ -162,16 +150,9 @@
 ;; After  state : [1][1][0]
 (define-public (bill-accept)
   (begin
-    (asserts! (and    
-                  (
-                    and 
-                    (is-eq (get-state-seller)  u1) 
-                    (is-eq (get-state-buyer)   u0)
-                  ) 
-                  (
-                    is-eq (get-state-mediator) u0
-                  )
-              )              
+    (asserts! (and (is-eq (get-state-seller)   u1) 
+                   (is-eq (get-state-buyer)    u0)
+                   (is-eq (get-state-mediator) u0))              
               (err "lol")
     ) ;; /asserts!
     (set-principal-buyer (some tx-sender))
@@ -186,21 +167,13 @@
 (define-public (fund-seller)
   (begin
     ;; check first the status of escrow contract
-    (asserts! (and 
-                  (
-                    and 
-                    (is-eq (get-state-seller)  u1) 
-                    (is-eq (get-state-buyer)   u1)
-                  ) 
-                  (
-                    is-eq (get-state-mediator) u0
-                  )
-              )              
+    (asserts! (and (is-eq (get-state-seller)   u1) 
+                   (is-eq (get-state-buyer)    u1) 
+                   (is-eq (get-state-mediator) u0))              
               (err u2)
     ) ;; /asserts!
-    ;;(asserts! (is-eq (some tx-sender) (var-get principal-seller)) (err u1))
     (asserts! (is-eq (some tx-sender) (get-principal-seller)) (err u1))    
-    (try! (transfer-to-contract))  ;; too many try!s
+    (try! (transfer-to-contract (get-price)))  ;; too many try!s
     (set-state-seller u2)
     (ok (status-of-contract))
   ) ;; /begin
@@ -214,6 +187,9 @@
     ;; check first the status of escrow contract
     (asserts! (and 
                   (
+
+;; TRY AGAIN HERE. REFACTROR AND ADD (* (get-price) 2)
+
                     and 
                     (is-eq (get-state-seller)  u2) 
                     (is-eq (get-state-buyer)   u1)
@@ -261,9 +237,9 @@
   ) ;; /begin
 )
 
-(define-private (transfer-to-contract)
+(define-private (transfer-to-contract (fund-amount uint))
   (begin
-    (try! (stx-transfer? u10 tx-sender (as-contract tx-sender)))  ;; hmmm, try! returns a uint. what's the value then?
+    (try! (stx-transfer? fund-amount tx-sender (as-contract tx-sender)))
     (ok u0)
   )
 )
