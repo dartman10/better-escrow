@@ -37,14 +37,20 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),
             Tx.contractCall('better-escrow', 'fund-release', [], buyer.address),
          ]);
+         console.log(block.receipts.length);
          assertEquals(block.receipts.length, 5);
-         
+         console.log(block.receipts[0].result);
          assertEquals(block.receipts[0].result.expectOk().expectOk(), '[u1, u0, u0]');
+         console.log(block.receipts[1].result);
          assertEquals(block.receipts[1].result.expectOk().expectOk(), '[u1, u1, u0]');
+         console.log(block.receipts[2].result);
          assertEquals(block.receipts[2].result.expectOk().expectOk(), '[u2, u1, u0]');
+         console.log(block.receipts[3].result);
          assertEquals(block.receipts[3].result.expectOk().expectOk(), '[u2, u2, u0]');
+         console.log(block.receipts[4].result);
          assertEquals(block.receipts[4].result.expectOk().expectOk(), '[u2, u3, u0]');
 
+         
 
     },
 });
