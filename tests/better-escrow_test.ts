@@ -10,6 +10,7 @@ Clarinet.test({
         let seller    = accounts.get('wallet_9')!;
         let buyer     = accounts.get('wallet_8')!;
         let mediator  = accounts.get('wallet_7')!;
+        let price     = 10;
 
         /*
         ------------------------------------------------------------ 
@@ -30,7 +31,7 @@ Clarinet.test({
         ------------------------------------------------------------- 
         */
         block = chain.mineBlock([
-            Tx.contractCall('better-escrow', 'bill-create',  [], seller.address),
+            Tx.contractCall('better-escrow', 'bill-create',  [price], seller.address),
             Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
             Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
             Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),

@@ -113,6 +113,9 @@
 (define-read-only (get-price)
   (var-get price))
 
+(define-private (set-price (price-value uint))
+  (var-set price price-value))
+
 ;; Return status of contract
 ;; Question - how do I return all the variables? map? tuple? print?
 (define-public (status-of-contract)
@@ -185,23 +188,13 @@
 (define-public (fund-buyer)
   (begin
     ;; check first the status of escrow contract
-    (asserts! (and 
-                  (
-
-;; TRY AGAIN HERE. REFACTROR AND ADD (* (get-price) 2)
-
-                    and 
-                    (is-eq (get-state-seller)  u2) 
-                    (is-eq (get-state-buyer)   u1)
-                  ) 
-                  (
-                    is-eq (get-state-mediator) u0
-                  )
-              )              
+    (asserts! (and (is-eq (get-state-seller)   u2) 
+                   (is-eq (get-state-buyer)    u1)
+                   (is-eq (get-state-mediator) u0))
               (err u777)
     ) ;; /asserts!
     (asserts! (is-eq (some tx-sender) (get-principal-buyer)) (err u666)) 
-    (try! (transfer-to-contract))   ;; try! returns a uint. try! is need for intermediate blah blah
+    (try! (transfer-to-contract (* (get-price) u2)))   ;; try! returns a uint. try! is need for intermediate blah blah
     (set-state-buyer u2)
     (ok (status-of-contract))
   ) ;; /begin
