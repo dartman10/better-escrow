@@ -133,7 +133,6 @@
 ;; After  state : [1][0][0]
 (define-public (bill-create (price-request uint))
   (begin
-
     ;; check if contract status is eligible for the next round
     (asserts! (and (is-eq (get-state-seller)   u0) 
                    (is-eq (get-state-buyer)    u0)
