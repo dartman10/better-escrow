@@ -74,6 +74,13 @@
 (define-read-only (get-contract-caller)
   (ok contract-caller))
 
+(define-read-only (get-principal-contract)
+  (begin
+    ;; This one works because DURING stx-transfer execution, it replaces tx-sender to contract principal.
+    (as-contract tx-sender)
+  )
+)
+
 (define-read-only (get-principal-seller)
   (var-get principal-seller))
 
