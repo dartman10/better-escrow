@@ -99,27 +99,46 @@ Clarinet.test({
        
          console.log(' ');  /* blank line */
 
+         console.log('--> Seller initiates a contract. Buyer accepts contract. Seller adds fund. Buyer adds fund. --');          
+
          /* Initial assets of principals. */
-         let asset_seller_initial   = (parseInt((block.receipts[4].result.expectOk()).replace('u','0')));
-         let asset_buyer_initial    = (parseInt((block.receipts[5].result.expectOk()).replace('u','0')));
-         let asset_contract_initial = (parseInt((block.receipts[6].result.expectOk()).replace('u','0')));
+         let asset_seller_initial   = (parseInt((block.receipts[3].result.expectOk()).replace('u','0')));
+         let asset_buyer_initial    = (parseInt((block.receipts[4].result.expectOk()).replace('u','0')));
+         let asset_contract_initial = (parseInt((block.receipts[5].result.expectOk()).replace('u','0')));
 
          /* Check seller balance. Expect initial balance subtracted with sell price. */
-         let asset_seller_expected   = (asset_seller_initial - (parseInt((price.replace('u','0')),10)));   /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
+         let asset_seller_expected   = (asset_seller_initial - (parseInt((price.replace('u','0')),10)));      /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
          let asset_seller_transacted = (parseInt((block.receipts[8].result.expectOk()).replace('u','0')));
          assertEquals(asset_seller_transacted, asset_seller_expected); 
 
          /* Check buyer balance. Expect initial balance subtracted with 2x buy price. */
-         let asset_buyer_expected   = (asset_buyer_initial - ((parseInt((price.replace('u','0')),10)) * 2));     /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
+         let asset_buyer_expected   = (asset_buyer_initial - ((parseInt((price.replace('u','0')),10)) * 2));  /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
          let asset_buyer_transacted = (parseInt((block.receipts[9].result.expectOk()).replace('u','0')));
          assertEquals(asset_buyer_transacted, asset_buyer_expected); 
 
-         /* console.log(block.receipts[3].result.expectOk().expectOk()); */
-         /* assertEquals(block.receipts[3].result.expectOk().expectOk(), '[u2, u2, u0]'); */
-         /*
-         console.log(block.receipts[4].result.expectOk().expectOk());
-         assertEquals(block.receipts[4].result.expectOk().expectOk(), '[u2, u3, u0]');
-         */
+         /* Check principal contract balance. Expect balance as 3x price amount.  Initial amount should be zero. */
+         let asset_contract_expected   = (asset_contract_initial + ((parseInt((price.replace('u','0')),10)) * 3)); 
+         let asset_contract_transacted = (parseInt((block.receipts[10].result.expectOk()).replace('u','0')));
+         assertEquals(asset_contract_transacted, asset_contract_expected); 
+
+         console.log(' ');  /* blank line */
+
+         console.log('--> Buyer releases funds from the contract. --');          
+
+         /* Check seller balance. Expect initial balance added with sell price. */
+         asset_seller_expected   = (asset_seller_initial + (parseInt((price.replace('u','0')),10)));      /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
+         asset_seller_transacted = (parseInt((block.receipts[12].result.expectOk()).replace('u','0')));
+         assertEquals(asset_seller_transacted, asset_seller_expected); 
+
+         /* Check buyer balance. Expect initial balance subtracted with 2x buy price. */
+         let asset_buyer_expected   = (asset_buyer_initial - ((parseInt((price.replace('u','0')),10)) * 2));  /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
+         let asset_buyer_transacted = (parseInt((block.receipts[9].result.expectOk()).replace('u','0')));
+         assertEquals(asset_buyer_transacted, asset_buyer_expected); 
+
+         /* Check principal contract balance. Expect balance as 3x price amount.  Initial amount should be zero. */
+         let asset_contract_expected   = (asset_contract_initial + ((parseInt((price.replace('u','0')),10)) * 3)); 
+         let asset_contract_transacted = (parseInt((block.receipts[10].result.expectOk()).replace('u','0')));
+         assertEquals(asset_contract_transacted, asset_contract_expected); 
 
          console.log(' ');  /* blank line */
          console.log('Nice. All good in the hood!');  /* blank line */
