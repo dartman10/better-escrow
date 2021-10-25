@@ -208,7 +208,7 @@
               (err u777)
     ) ;; /asserts!
     (asserts! (is-eq (some tx-sender) (get-principal-buyer)) (err u666)) 
-    (try! (transfer-to-contract (* (get-price) u2)))   ;; try! returns a uint. try! is need for intermediate blah blah
+    (try! (transfer-to-contract (* (get-price) u2)))   ;; Buyer puts in funds twice as much as the seller's funds. Half for collateral, half for price of goods.
     (set-state-buyer u2)
     (ok (status-of-contract))
   ) ;; /begin
@@ -222,23 +222,16 @@
 (define-public (fund-release)
   (begin
     ;; check first the status of escrow contract
-    (asserts! (and 
-                  (
-                    and 
-                    (is-eq (get-state-seller)  u2) 
-                    (is-eq (get-state-buyer)   u2)
-                  ) 
-                  (
-                    is-eq (get-state-mediator) u0
-                  )
-              )              
+    (asserts! (and (is-eq (get-state-seller)   u2) 
+                   (is-eq (get-state-buyer)    u2)
+                   (is-eq (get-state-mediator) u0))              
               (err u111)
     ) ;; /asserts!
 
     ;; Only the buyer can release the funds.
     ;; unwrap is required for optional principal --> Analysis error: expecting expression of type '(optional principal)', found 'principal'
     (asserts! (is-eq tx-sender (unwrap! (get-principal-buyer) (err u113))) (err u112))
-    (try! (transfer-from-contract))     ;; try! returns a uint. try! is need for intermediate blah blah
+    (try! (transfer-from-contract))     ;; try! returns a uint. try! is needed for intermediate blah blah
     (set-state-buyer u3)
     (ok (status-of-contract))
   ) ;; /begin
@@ -257,8 +250,8 @@
     ;; as-contract replaces tx-sender inside the closure. get it? lol. easy-peasy.
 
     ;; This one works because DURING stx-transfer execution, it replaces tx-sender to contract principal.
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-buyer) (err u727)))))  ;; send funds to buyer
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u728)))))  ;; send funds to seller
+    (try! (as-contract (stx-transfer? (get-price) tx-sender (unwrap! (get-principal-buyer) (err u727)))))  ;; send funds to buyer
+    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (unwrap! (get-principal-seller) (err u728)))))  ;; send funds to seller
 
     ;; This returns an err u4 because as-contract converts tx-sender to contract principal prior to executing stx-transfer, so stx-transfer naturally fails
     ;;(try! (stx-transfer? u10 (as-contract tx-sender) (unwrap! (var-get principal-buyer) (err u727)))) ;; 
