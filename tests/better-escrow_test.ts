@@ -109,6 +109,11 @@ Clarinet.test({
          let asset_seller_transacted = (parseInt((block.receipts[8].result.expectOk()).replace('u','0')));
          assertEquals(asset_seller_transacted, asset_seller_expected); 
 
+         /* Check buyer balance. Expect initial balance subtracted with 2x buy price. */
+         let asset_buyer_expected   = (asset_buyer_initial - ((parseInt((price.replace('u','0')),10)) * 2));     /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
+         let asset_buyer_transacted = (parseInt((block.receipts[9].result.expectOk()).replace('u','0')));
+         assertEquals(asset_buyer_transacted, asset_buyer_expected); 
+
          /* console.log(block.receipts[3].result.expectOk().expectOk()); */
          /* assertEquals(block.receipts[3].result.expectOk().expectOk(), '[u2, u2, u0]'); */
          /*
@@ -117,7 +122,7 @@ Clarinet.test({
          */
 
          console.log(' ');  /* blank line */
-         console.log('Whoa! All good in the hood!');  /* blank line */
+         console.log('Nice. All good in the hood!');  /* blank line */
          console.log(' ');  /* blank line */
 
          console.log(' ');
