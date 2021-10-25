@@ -67,7 +67,7 @@ Clarinet.test({
          console.log('price          = ' + price);
 
          console.log('result count   = ' + block.receipts.length);
-         /* assertEquals(block.receipts.length, 5); */
+         assertEquals(block.receipts.length, 15);  /* expected contract call results */
 
          console.log('contract addr  = ' + block.receipts[0].result);
 
@@ -96,15 +96,18 @@ Clarinet.test({
          assertEquals(block.receipts[6].result.expectOk().expectOk(),  '[u2, u1, u0]');  /* fund-seller   */
          assertEquals(block.receipts[7].result.expectOk().expectOk(),  '[u2, u2, u0]');  /* fund-buyer    */
          assertEquals(block.receipts[11].result.expectOk().expectOk(), '[u2, u3, u0]');  /* fund-release  */
-
-         
-
+       
          console.log(' ');  /* blank line */
 
-         /* Compare seller balance. Expect initial balance subtracted with sell price. */
-         let asset_expected_seller   = (100000000000000 - (parseInt((price.replace('u','0')),10)));   /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
-         let asset_transacted_seller = (parseInt((block.receipts[8].result.expectOk()).replace('u','0')));
-         assertEquals(asset_transacted_seller, asset_expected_seller); 
+         /* Initial assets of principals. */
+         let asset_seller_initial   = (parseInt((block.receipts[4].result.expectOk()).replace('u','0')));
+         let asset_buyer_initial    = (parseInt((block.receipts[5].result.expectOk()).replace('u','0')));
+         let asset_contract_initial = (parseInt((block.receipts[6].result.expectOk()).replace('u','0')));
+
+         /* Check seller balance. Expect initial balance subtracted with sell price. */
+         let asset_seller_expected   = (asset_seller_initial - (parseInt((price.replace('u','0')),10)));   /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
+         let asset_seller_transacted = (parseInt((block.receipts[8].result.expectOk()).replace('u','0')));
+         assertEquals(asset_seller_transacted, asset_seller_expected); 
 
          /* console.log(block.receipts[3].result.expectOk().expectOk()); */
          /* assertEquals(block.receipts[3].result.expectOk().expectOk(), '[u2, u2, u0]'); */
@@ -112,6 +115,10 @@ Clarinet.test({
          console.log(block.receipts[4].result.expectOk().expectOk());
          assertEquals(block.receipts[4].result.expectOk().expectOk(), '[u2, u3, u0]');
          */
+
+         console.log(' ');  /* blank line */
+         console.log('Whoa! All good in the hood!');  /* blank line */
+         console.log(' ');  /* blank line */
 
          console.log(' ');
          console.log('---------------------------------------------');
