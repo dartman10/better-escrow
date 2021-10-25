@@ -1,6 +1,3 @@
-
-;; DO THE PRICE NOW!!!\
-
 ;; --------------------------------------------
 ;; better-escrow : The better escrow service.
 ;; --------------------------------------------
@@ -21,8 +18,9 @@
 ;; - Write separate functions for individual scenarios. Refactor later to remove duplicate codes.
 ;;
 ;; Future enhancements:
-;; - Use GAIA off-chain storage for persistent data
+;; - Use GAIA off-chain storage for persistent data.
 ;; - Enabling several instances of active escrow contracts.
+;; - Allow participants to set collateral percentage, perhaps DAO enabled.
 ;;
 ;; ------------------------------------------
 ;; Enough talk.  Let's do this.
@@ -66,7 +64,7 @@
 ;; about function - desribe this contract
 ;; make this part of trait
 (define-read-only (about)
-   (ok "better escrow is the escrow.com killer"))
+   (ok "Just Another Escrow Application"))
 
 (define-read-only (get-tx-sender)
   (ok tx-sender))
@@ -74,20 +72,20 @@
 (define-read-only (get-contract-caller)
   (ok contract-caller))
 
-(define-read-only (get-principal-contract)
-  (begin
-    ;; This one works because DURING stx-transfer execution, it replaces tx-sender to contract principal.
-    (as-contract tx-sender)
-  )
+(define-read-only (get-principal-contract)  ;; for Clarinet testing only
+  (as-contract tx-sender)
+)
+
+(define-read-only (get-balance-contract)  ;; for Clarinet testing only
+  ;;(ok (stx-get-balance (unwrap! (get-principal-contract) (err u73215))))
+  (ok (stx-get-balance (get-principal-contract)))
 )
 
 (define-read-only (get-principal-seller)
   (var-get principal-seller))
 
 (define-read-only (get-balance-seller)  ;; for Clarinet testing only
-  (begin
-    (ok (stx-get-balance (unwrap! (get-principal-seller) (err u73211))))
-  )
+  (ok (stx-get-balance (unwrap! (get-principal-seller) (err u73211))))
 )
 
 (define-private (set-principal-seller (principal-value (optional principal)))
@@ -97,9 +95,7 @@
   (var-get principal-buyer))
 
 (define-read-only (get-balance-buyer)  ;; for Clarinet testing only
-  (begin
-    (ok (stx-get-balance (unwrap! (get-principal-buyer) (err u73212))))
-  )
+  (ok (stx-get-balance (unwrap! (get-principal-buyer) (err u73212))))
 )
 
 (define-private (set-principal-buyer (principal-value (optional principal)))

@@ -24,7 +24,7 @@ Clarinet.test({
            Tx.contractCall('better-escrow', 'status-of-contract', [], seller.address),
         ]);
         assertEquals(block.receipts.length, 2);
-        assertEquals(block.receipts[0].result.expectOk(), '"better escrow is the escrow.com killer"');
+        assertEquals(block.receipts[0].result.expectOk(), '"Just Another Escrow Application"');
         assertEquals(block.receipts[1].result.expectOk(), '[u0, u0, u0]');
 
         /*
@@ -41,6 +41,7 @@ Clarinet.test({
 
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),  /* Get initial asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),   /* Get initial asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
             
             Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
             Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),            
@@ -55,7 +56,10 @@ Clarinet.test({
 
          ]);
 
-         console.log('-------------------------------');
+         console.log(' ');
+         console.log('-------------------------------------------');
+         console.log('-- Simulate a smooth escrow transaction. --');          
+         console.log('-------------------------------------------');            
          console.log('seller.address = ' + seller.address);
          console.log('buyer.address  = ' + buyer.address);
 
@@ -67,13 +71,14 @@ Clarinet.test({
          console.log('bill accepted  = ' + block.receipts[2].result);
          console.log('Seller asset   = ' + block.receipts[3].result);
          console.log('Buyer asset    = ' + block.receipts[4].result);
-         console.log('Seller funded  = ' + block.receipts[5].result);
-         console.log('Buyer funded   = ' + block.receipts[6].result);
-         console.log('Seller asset   = ' + block.receipts[7].result);
-         console.log('Buyer asset    = ' + block.receipts[8].result);
-         console.log('Fund release   = ' + block.receipts[9].result);
-         console.log('Seller asset   = ' + block.receipts[10].result);
-         console.log('Buyer asset    = ' + block.receipts[11].result);
+         console.log('Contract asset = ' + block.receipts[5].result);
+         console.log('Seller funded  = ' + block.receipts[6].result);
+         console.log('Buyer funded   = ' + block.receipts[7].result);
+         console.log('Seller asset   = ' + block.receipts[8].result);
+         console.log('Buyer asset    = ' + block.receipts[9].result);
+         console.log('Fund release   = ' + block.receipts[10].result);
+         console.log('Seller asset   = ' + block.receipts[11].result);
+         console.log('Buyer asset    = ' + block.receipts[12].result);
          
          console.log(block.receipts[0].result.expectOk().expectOk());
          /* assertEquals(block.receipts[0].result.expectOk().expectOk(), '[u1, u0, u0]'); */
