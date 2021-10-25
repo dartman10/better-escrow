@@ -77,11 +77,23 @@
 (define-read-only (get-principal-seller)
   (var-get principal-seller))
 
+(define-read-only (get-balance-seller)  ;; for Clarinet testing only
+  (begin
+    (ok (stx-get-balance (unwrap! (get-principal-seller) (err u73211))))
+  )
+)
+
 (define-private (set-principal-seller (principal-value (optional principal)))
   (var-set principal-seller principal-value))
 
 (define-read-only (get-principal-buyer)
   (var-get principal-buyer))
+
+(define-read-only (get-balance-buyer)  ;; for Clarinet testing only
+  (begin
+    (ok (stx-get-balance (unwrap! (get-principal-buyer) (err u73212))))
+  )
+)
 
 (define-private (set-principal-buyer (principal-value (optional principal)))
   (var-set principal-buyer principal-value))
