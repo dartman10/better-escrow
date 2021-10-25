@@ -34,25 +34,27 @@ Clarinet.test({
         */
         block = chain.mineBlock([
 
-           Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
+            Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
 
             Tx.contractCall('better-escrow', 'bill-create',  [price], seller.address),
             Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
 
-            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),  /* Get initial asset. */
-            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),   /* Get initial asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
             
             Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
             Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),            
 
-            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),  /* Get updated asset. */
-            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),   /* Get updated asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-seller',   [], seller.address),   /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',    [], buyer.address),    /* Get updated asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
 
             Tx.contractCall('better-escrow', 'fund-release', [], buyer.address),  /* Complete escrow transaction. Give seller back his collateral plus the sell price.  Give buyer back his collateral minus the buy price. */
             
-            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),  /* Get updated asset. */
-            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),   /* Get updated asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),    /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),     /* Get updated asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),  /* Get updated asset. */
 
          ]);
 
@@ -62,24 +64,35 @@ Clarinet.test({
          console.log('-------------------------------------------');            
          console.log('seller.address = ' + seller.address);
          console.log('buyer.address  = ' + buyer.address);
+         console.log('price          = ' + price);
 
          console.log('result count   = ' + block.receipts.length);
          /* assertEquals(block.receipts.length, 5); */
 
          console.log('contract addr  = ' + block.receipts[0].result);
+
          console.log('bill created   = ' + block.receipts[1].result);
          console.log('bill accepted  = ' + block.receipts[2].result);
+
          console.log('Seller asset   = ' + block.receipts[3].result);
          console.log('Buyer asset    = ' + block.receipts[4].result);
          console.log('Contract asset = ' + block.receipts[5].result);
+
          console.log('Seller funded  = ' + block.receipts[6].result);
          console.log('Buyer funded   = ' + block.receipts[7].result);
+
          console.log('Seller asset   = ' + block.receipts[8].result);
          console.log('Buyer asset    = ' + block.receipts[9].result);
-         console.log('Fund release   = ' + block.receipts[10].result);
-         console.log('Seller asset   = ' + block.receipts[11].result);
-         console.log('Buyer asset    = ' + block.receipts[12].result);
+         console.log('Contract asset = ' + block.receipts[10].result);
          
+         console.log('Fund release   = ' + block.receipts[11].result);
+
+         console.log('Seller asset   = ' + block.receipts[12].result);
+         console.log('Buyer asset    = ' + block.receipts[13].result);
+         console.log('Contract asset = ' + block.receipts[14].result);
+
+
+
          console.log(block.receipts[0].result.expectOk().expectOk());
          /* assertEquals(block.receipts[0].result.expectOk().expectOk(), '[u1, u0, u0]'); */
          
