@@ -45,12 +45,14 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
             Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),            
 
-            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),  /* Get initial asset. */
-            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),   /* Get initial asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),  /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),   /* Get updated asset. */          
 
-         /* Tx.contractCall('better-escrow', 'fund-release', [], buyer.address),
-         */
+            Tx.contractCall('better-escrow', 'fund-release', [], buyer.address),  /* Complete escrow transaction. Give seller back his collateral plus the sell price.  Give buyer back his collateral minus the buy price. */
             
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),  /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),   /* Get updated asset. */          
+
          ]);
 
          console.log('-------------------------------');
@@ -58,7 +60,7 @@ Clarinet.test({
          console.log('buyer.address  = ' + buyer.address);
 
          console.log('result count   = ' + block.receipts.length);
-         / *assertEquals(block.receipts.length, 5); */
+         /* assertEquals(block.receipts.length, 5); */
 
          console.log('contract addr  = ' + block.receipts[0].result);
          console.log('bill created   = ' + block.receipts[1].result);
@@ -69,9 +71,9 @@ Clarinet.test({
          console.log('Buyer funded   = ' + block.receipts[6].result);
          console.log('Seller asset   = ' + block.receipts[7].result);
          console.log('Buyer asset    = ' + block.receipts[8].result);
-
-
-
+         console.log('Fund release   = ' + block.receipts[9].result);
+         console.log('Seller asset   = ' + block.receipts[10].result);
+         console.log('Buyer asset    = ' + block.receipts[11].result);
          
          console.log(block.receipts[0].result.expectOk().expectOk());
          /* assertEquals(block.receipts[0].result.expectOk().expectOk(), '[u1, u0, u0]'); */
