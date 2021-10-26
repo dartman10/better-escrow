@@ -453,8 +453,8 @@
               (err u3111)
     ) ;; /asserts!
 
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-buyer) (err u3727)))))  ;; send funds to buyer
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u3728)))))  ;; send funds to seller
+    (try! (as-contract (stx-transfer? (get-price) tx-sender (unwrap! (get-principal-buyer) (err u3727)))))  ;; send collateral funds to buyer
+    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (unwrap! (get-principal-seller) (err u3728)))))  ;; send collateral funds plus price to seller
     (set-state-seller u7)
     (set-state-buyer  u7)
     (ok (status-of-contract))
