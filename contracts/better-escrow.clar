@@ -149,14 +149,19 @@
 (define-public (bill-create (price-request uint))
   (begin
     ;; check if contract status is eligible for the next round
-    (asserts! (and (is-eq (get-state-seller)   u0) 
-                   (is-eq (get-state-buyer)    u0)
-                   (is-eq (get-state-mediator) u0))              
+    (asserts! (or (and (is-eq (get-state-seller)   u0) 
+                       (is-eq (get-state-buyer)    u0)
+                       (is-eq (get-state-mediator) u0))
+                  (and (is-eq (get-state-seller)   u2) 
+                       (is-eq (get-state-buyer)    u3)
+                       (is-eq (get-state-mediator) u0)))         
               (err "lol")
     ) ;; <asserts! end>
 
     (set-principal-seller (some tx-sender))
-    (set-state-seller u1)
+    (set-state-seller   u1)
+    (set-state-buyer    u0)
+    (set-state-mediator u0)
     (var-set price price-request)
     (ok (status-of-contract))
   ) ;; <begin end>
@@ -258,12 +263,13 @@
 ;; =============================
 
 ;; Either the Seller or Buyer can request for a Mediator.
-;; Question: How would I know who requested the Mediator?
 ;; Once this happens:
 ;;   - Both Seller and Buyer has to sign if they like to cancel the mediator request;
 ;;   - The mediator has to sign contract as acceptance of responsibility.
 ;; Before state : [>=1][>=1][0] or [>=1][>=1][0] 
 ;; After  state : [>=1][>=1][1] or [>=1][>=1][1]
+;; Question: How would I know who requested the Mediator? I need to add a unique status combination.
+
 (define-public (request-mediator)
   (begin
     (asserts! (and (>=    (get-state-seller)   u1) 
