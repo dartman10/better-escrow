@@ -95,8 +95,7 @@
   (var-get principal-buyer))
 
 (define-read-only (get-balance-buyer)  ;; for Clarinet testing only
-  (ok (stx-get-balance (unwrap! (get-principal-buyer) (err u73212))))
-)
+  (ok (stx-get-balance (unwrap! (get-principal-buyer) (err u73212)))))
 
 (define-private (set-principal-buyer (principal-value (optional principal)))
   (var-set principal-buyer principal-value))
@@ -132,7 +131,6 @@
   (var-set price price-value))
 
 ;; Return status of contract
-;; Question - how do I return all the variables? map? tuple? print?
 (define-public (status-of-contract)
   (begin
     (ok (list (get-state-seller) 
@@ -266,6 +264,7 @@
 ;; Once this happens:
 ;;   - Both Seller and Buyer has to sign if they like to cancel the mediator request;
 ;;   - The mediator has to sign contract as acceptance of responsibility.
+;;   - The mediator has to lock funds too equal to the price. To motivate mediator to mediate without delay.
 ;; Before state : [>=1][>=1][0] or [>=1][>=1][0] 
 ;; After  state : [>=1][>=1][1] or [>=1][>=1][1]
 ;; Question: How would I know who requested the Mediator? I need to add a unique status combination.
