@@ -165,29 +165,33 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
-            Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address),        /* Get updated asset.             */
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'bill-create',  [price], seller.address),
+
             Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
+
             Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),            
             Tx.contractCall('better-escrow', 'get-balance-seller',   [], seller.address),   /* Get updated asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',    [], buyer.address),    /* Get updated asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
             Tx.contractCall('better-escrow', 'request-mediator', [], buyer.address),               /* Buyer requested for a Mediator */            
+
             Tx.contractCall('better-escrow', 'mediate-accept', [], mediator.address),              /* Mediator accepted.             */
             Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address),        /* Get updated asset.             */
             Tx.contractCall('better-escrow', 'get-balance-contract', [], mediator.address),        /* Get updated asset.             */
             Tx.contractCall('better-escrow', 'mediator-confirmation-seller', [], seller.address),  /* Seller accepted Mediator.      */
             Tx.contractCall('better-escrow', 'mediator-confirmation-buyer', [], buyer.address),    /* Buyer accepted Mediator.       */   
+
             Tx.contractCall('better-escrow', 'mediator-decides-good', [], mediator.address),       /* Mediator decides good transaction. */
             Tx.contractCall('better-escrow', 'fund-disburse', [], seller.address),                 /* Seller triggers fund disbursement. */
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get updated asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get updated asset. */       
-            Tx.contractCall('better-escrow', 'get-balance-contract', [], mediator.address), /* Get updated asset. */   
+            Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address), /* Get updated asset. */   
+
             Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
 
          ]);
@@ -195,45 +199,47 @@ Clarinet.test({
          console.log('seller.address   = ' + seller.address);
          console.log('buyer.address    = ' + buyer.address);
          console.log('mediator.address = ' + mediator.address);
-         console.log('contract address = ' + block.receipts[0].result);
+         console.log('get-principal-contract = ' + block.receipts[0].result);
 
          console.log('price            = ' + price);
          console.log('result count     = ' + block.receipts.length);
           /* assertEquals(block.receipts.length, 20);  /* expected contract call results */
 
-          console.log('Seller asset     = ' + block.receipts[1].result);
-          console.log('Buyer asset      = ' + block.receipts[2].result);
-          console.log('Contract asset   = ' + block.receipts[3].result); 
+         console.log('get-balance-seller   = ' + block.receipts[1].result);
+         console.log('get-balance-buyer    = ' + block.receipts[2].result);
+         console.log('mediator.balance     = ' + mediator.balance);  /* account.mediator initial balance. at this point, mediator principal is still NONE */          
+         console.log('get-balance-contract = ' + block.receipts[3].result); 
 
-         console.log('bill-create      = ' + block.receipts[1].result + ' --> Seller initiates a bill');
-         console.log('bill-accept      = ' + block.receipts[2].result + ' --> Buyer accepts the bill');
+         console.log('bill-create          = ' + block.receipts[4].result + ' --> Seller initiates a bill');
+         console.log('bill-accept          = ' + block.receipts[5].result + ' --> Buyer accepts the bill');
 
-         console.log('Seller asset     = ' + block.receipts[3].result);
-         console.log('Buyer asset      = ' + block.receipts[4].result);
-         console.log('Contract asset   = ' + block.receipts[5].result);
+         console.log('get-balance-seller   = ' + block.receipts[6].result);
+         console.log('get-balance-buyer    = ' + block.receipts[7].result);
+         console.log('get-balance-contract = ' + block.receipts[8].result);
 
-         console.log('fund-seller      = ' + block.receipts[6].result + ' --> Seller funded contract');  
-         console.log('fund-buyer       = ' + block.receipts[7].result + ' --> Buyer funded contract');
+         console.log('fund-seller          = ' + block.receipts[9].result + ' --> Seller funded contract');  
+         console.log('fund-buyer           = ' + block.receipts[10].result + ' --> Buyer funded contract');
 
-         console.log('Seller asset     = ' + block.receipts[8].result);
-         console.log('Buyer asset      = ' + block.receipts[9].result);
-         console.log('Contract asset   = ' + block.receipts[10].result);
+         console.log('get-balance-seller   = ' + block.receipts[11].result);
+         console.log('get-balance-buyer    = ' + block.receipts[12].result);
+         console.log('get-balance-contract = ' + block.receipts[13].result);
          
-         console.log('request-mediator = ' + block.receipts[11].result + ' --> Seller or buyer requeted for a mediator');
-         console.log('mediate-accept   = ' + block.receipts[12].result + ' --> Mediator accepted and buys in');
+         console.log('request-mediator     = ' + block.receipts[14].result + ' --> Seller or buyer requeted for a mediator');
+         console.log('mediate-accept       = ' + block.receipts[15].result + ' --> Mediator accepted and buys in');
 
-         console.log('Mediator asset   = ' + block.receipts[13].result);
-         console.log('Contract asset   = ' + block.receipts[14].result);
+         console.log('get-balance-mediator = ' + block.receipts[16].result);
+         console.log('get-balance-contract = ' + block.receipts[17].result);
 
-         console.log('mediator-confirmation-seller = ' + block.receipts[13].result + ' --> Seller approves the mediator');
-         console.log('mediator-confirmation-buyer  = ' + block.receipts[14].result + ' --> Buyer approves the mediator');
+         console.log('mediator-confirmation-seller = ' + block.receipts[18].result + ' --> Seller approves the mediator');
+         console.log('mediator-confirmation-buyer  = ' + block.receipts[19].result + ' --> Buyer approves the mediator');
 
-         console.log('mediator-decides-good = ' + block.receipts[15].result + ' --> Mediator favors the original deal');
-         console.log('fund-disburse    = ' + block.receipts[16].result + ' --> Seller triggers fund disbursement');
+         console.log('mediator-decides-good = ' + block.receipts[20].result + ' --> Mediator favors the original deal');
+         console.log('fund-disburse         = ' + block.receipts[21].result + ' --> Seller triggers fund disbursement');
 
-         console.log('Seller asset     = ' + block.receipts[17].result);
-         console.log('Buyer asset      = ' + block.receipts[18].result);
-         console.log('Contract asset   = ' + block.receipts[19].result + ' --> Contract principal final asset should be zero.');
+         console.log('get-balance-seller    = ' + block.receipts[22].result);
+         console.log('get-balance-buyer     = ' + block.receipts[23].result);
+         console.log('get-balance-mediator  = ' + block.receipts[24].result);
+         console.log('get-balance-contract  = ' + block.receipts[25].result + ' --> Contract principal final asset should be zero.');
 
          console.log(' ');  /* blank line */
 
@@ -296,6 +302,15 @@ Clarinet.test({
         console.log('Good luck Clarinauts!  May Satoshi\'s force be with you.');
         console.log(' ');                            /* blank line */
 
+       /*
+        export interface Account {
+         address: string;
+         balance: number;
+         name: string;
+         mnemonic: string;
+       ;;  derivation: string;
+       }
+       */
 
     },
 });
