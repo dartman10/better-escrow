@@ -149,9 +149,9 @@ Clarinet.test({
 
     
         /*
-        ------------------------------------------------------------ 
-           Simulate a transaction with a Mediator.                      
-        ------------------------------------------------------------- 
+        -----------------------------------------------------------------------------------------------------------------   
+           SIMULATE AN ESCROW TRANSACTION WITH A MEDIATOR INVOLVED.
+        -----------------------------------------------------------------------------------------------------------------
         */
 
         console.log(' ');
@@ -196,13 +196,12 @@ Clarinet.test({
          console.log('price          = ' + price);
 
          console.log('result count   = ' + block.receipts.length);
-         /*
-         assertEquals(block.receipts.length, 15);  /* expected contract call results */
+         assertEquals(block.receipts.length, 20);  /* expected contract call results */
 
          console.log('contract addr  = ' + block.receipts[0].result);
 
-         console.log('bill created   = ' + block.receipts[1].result);
-         console.log('bill accepted  = ' + block.receipts[2].result);
+         console.log('bill-create    = ' + block.receipts[1].result + ' --> Seller initiates a bill');
+         console.log('bill-accept    = ' + block.receipts[2].result + ' --> Buyer accepts the bill');
 
          console.log('Seller asset   = ' + block.receipts[3].result);
          console.log('Buyer asset    = ' + block.receipts[4].result);
@@ -231,11 +230,13 @@ Clarinet.test({
          assertEquals(block.receipts[2].result.expectOk().expectOk(),  '[u1, u1, u0]');  /* bill-accept   */
          assertEquals(block.receipts[6].result.expectOk().expectOk(),  '[u2, u1, u0]');  /* fund-seller   */
          assertEquals(block.receipts[7].result.expectOk().expectOk(),  '[u2, u2, u0]');  /* fund-buyer    */
-         assertEquals(block.receipts[11].result.expectOk().expectOk(), '[u2, u3, u0]');  /* fund-release  */
+         assertEquals(block.receipts[11].result.expectOk().expectOk(), '[u2, u2, u1]');  /* request-mediator  */
        
          console.log(' ');  /* blank line */
 
+         /* ----------------------------------------------------------------------------- */
          console.log('Checking results of : Seller initiates a contract; Buyer accepts contract; Seller adds fund; Buyer adds fund.');          
+         /* ----------------------------------------------------------------------------- */
 
          /* Initial assets of principals. */
          asset_seller_initial   = (parseInt((block.receipts[3].result.expectOk()).replace('u','0')));
@@ -259,26 +260,38 @@ Clarinet.test({
 
          console.log(' ');  /* blank line */
 
-         console.log('Checking results of : Buyer releases funds from the contract.');          
+         /* ----------------------------------------------------------------------------- */
+         console.log('Checking results of : Buyer releases funds from the contract.');      
+         /* ----------------------------------------------------------------------------- */    
 
          /* Check seller balance. Expect initial balance added with sell price. */
          asset_seller_expected   = (asset_seller_initial + (parseInt((price.replace('u','0')),10)));      /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
-         asset_seller_transacted = (parseInt((block.receipts[12].result.expectOk()).replace('u','0')));
+         asset_seller_transacted = (parseInt((block.receipts[17].result.expectOk()).replace('u','0')));
          assertEquals(asset_seller_transacted, asset_seller_expected); 
 
          /* Check buyer balance. Expect initial balance subtracted with buy price. */
          asset_buyer_expected   = (asset_buyer_initial - (parseInt((price.replace('u','0')),10)));  /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
-         asset_buyer_transacted = (parseInt((block.receipts[13].result.expectOk()).replace('u','0')));
+         asset_buyer_transacted = (parseInt((block.receipts[18].result.expectOk()).replace('u','0')));
          assertEquals(asset_buyer_transacted, asset_buyer_expected); 
 
          /* Check principal contract balance. Expect balance equal to initial amount. Though initial zero. */
          asset_contract_expected   = asset_contract_initial; 
-         asset_contract_transacted = (parseInt((block.receipts[14].result.expectOk()).replace('u','0')));
+         asset_contract_transacted = (parseInt((block.receipts[19].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
 
          console.log(' ');                            /* blank line */
          console.log('Nice. All good in the hood!');
          console.log(' ');                            /* blank line */
+
+        /*
+        -----------------------------------------------------------------------------------------------------------------   
+           END OF THE LINE.  PLEASE WATCH THE GAP.
+        -----------------------------------------------------------------------------------------------------------------
+        */
+
+        console.log(' ');                            /* blank line */
+        console.log('Good luck to all Clarinauts!  May Satoshi\'s force be with us all!');
+        console.log(' ');                            /* blank line */
 
 
     },
