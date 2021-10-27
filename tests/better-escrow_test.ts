@@ -155,9 +155,9 @@ Clarinet.test({
         */
 
         console.log(' ');
-        console.log('---------------------------------------------');
-        console.log('-- Simulate a transaction with a Mediator. --');          
-        console.log('---------------------------------------------');            
+        console.log('-----------------------------------------------------');
+        console.log('-- Simulate an escrow transaction with a Mediator. --');          
+        console.log('-----------------------------------------------------');            
         console.log(' ');
         
         block = chain.mineBlock([
@@ -191,52 +191,53 @@ Clarinet.test({
 
          ]);
 
-         console.log('seller.address = ' + seller.address);
-         console.log('buyer.address  = ' + buyer.address);
-         console.log('price          = ' + price);
+         console.log('seller.address   = ' + seller.address);
+         console.log('buyer.address    = ' + buyer.address);
+         console.log('mediator.address = ' + mediator.address);
+         console.log('price            = ' + price);
 
-         console.log('result count   = ' + block.receipts.length);
+         console.log('result count     = ' + block.receipts.length);
          assertEquals(block.receipts.length, 20);  /* expected contract call results */
 
-         console.log('contract addr  = ' + block.receipts[0].result);
+         console.log('contract addr    = ' + block.receipts[0].result);
 
-         console.log('bill-create    = ' + block.receipts[1].result + ' --> Seller initiates a bill');
-         console.log('bill-accept    = ' + block.receipts[2].result + ' --> Buyer accepts the bill');
+         console.log('bill-create      = ' + block.receipts[1].result + ' --> Seller initiates a bill');
+         console.log('bill-accept      = ' + block.receipts[2].result + ' --> Buyer accepts the bill');
 
-         console.log('Seller asset   = ' + block.receipts[3].result);
-         console.log('Buyer asset    = ' + block.receipts[4].result);
-         console.log('Contract asset = ' + block.receipts[5].result);
+         console.log('Seller asset     = ' + block.receipts[3].result);
+         console.log('Buyer asset      = ' + block.receipts[4].result);
+         console.log('Contract asset   = ' + block.receipts[5].result);
 
-         console.log('Seller funded  = ' + block.receipts[6].result);
-         console.log('Buyer funded   = ' + block.receipts[7].result);
+         console.log('fund-seller      = ' + block.receipts[6].result + ' --> Seller funded contract');  
+         console.log('fund-buyer       = ' + block.receipts[7].result + ' --> Buyer funded contract');
 
-         console.log('Seller asset   = ' + block.receipts[8].result);
-         console.log('Buyer asset    = ' + block.receipts[9].result);
-         console.log('Contract asset = ' + block.receipts[10].result);
+         console.log('Seller asset     = ' + block.receipts[8].result);
+         console.log('Buyer asset      = ' + block.receipts[9].result);
+         console.log('Contract asset   = ' + block.receipts[10].result);
          
-         console.log('Mediator requested  = ' + block.receipts[11].result);
-         console.log('Mediator accepted   = ' + block.receipts[12].result);
-         console.log('Seller approves  = ' + block.receipts[13].result);
-         console.log('Buyer approves   = ' + block.receipts[14].result);
+         console.log('request-mediator = ' + block.receipts[11].result + ' --> Seller or buyer requeted for a mediator');
+         console.log('mediate-accept   = ' + block.receipts[12].result + ' --> A mediator accepted to get involved');
+         console.log('mediator-confirmation-seller = ' + block.receipts[13].result + ' --> Seller approves the mediator');
+         console.log('mediator-confirmation-buyer  = ' + block.receipts[14].result + ' --> Buyer approves the mediator');
 
-         console.log('Mediator decides   = ' + block.receipts[15].result);
-         console.log('Seller disburses   = ' + block.receipts[16].result);
+         console.log('mediator-decides-good = ' + block.receipts[15].result + ' --> Mediator favors the original deal');
+         console.log('fund-disburse    = ' + block.receipts[16].result + ' --> Seller triggers fund disbursement');
 
-         console.log('Seller asset   = ' + block.receipts[17].result);
-         console.log('Buyer asset    = ' + block.receipts[18].result);
-         console.log('Contract asset = ' + block.receipts[19].result);
+         console.log('Seller asset     = ' + block.receipts[17].result);
+         console.log('Buyer asset      = ' + block.receipts[18].result);
+         console.log('Contract asset   = ' + block.receipts[19].result + ' --> Contract principal final asset should be zero.');
+
+         console.log(' ');  /* blank line */
+
+         /* ----------------------------------------------------------------------------- */
+         console.log('Asserting smart contract function results...');
+         /* ----------------------------------------------------------------------------- */
 
          assertEquals(block.receipts[1].result.expectOk().expectOk(),  '[u1, u0, u0]');  /* bill-create   */
          assertEquals(block.receipts[2].result.expectOk().expectOk(),  '[u1, u1, u0]');  /* bill-accept   */
          assertEquals(block.receipts[6].result.expectOk().expectOk(),  '[u2, u1, u0]');  /* fund-seller   */
          assertEquals(block.receipts[7].result.expectOk().expectOk(),  '[u2, u2, u0]');  /* fund-buyer    */
-         assertEquals(block.receipts[11].result.expectOk().expectOk(), '[u2, u2, u1]');  /* request-mediator  */
-       
-         console.log(' ');  /* blank line */
-
-         /* ----------------------------------------------------------------------------- */
-         console.log('Checking results of : Seller initiates a contract; Buyer accepts contract; Seller adds fund; Buyer adds fund.');          
-         /* ----------------------------------------------------------------------------- */
+         assertEquals(block.receipts[11].result.expectOk().expectOk(), '[u2, u2, u1]');  /* request-mediator  */       
 
          /* Initial assets of principals. */
          asset_seller_initial   = (parseInt((block.receipts[3].result.expectOk()).replace('u','0')));
@@ -257,12 +258,6 @@ Clarinet.test({
          asset_contract_expected   = (asset_contract_initial + ((parseInt((price.replace('u','0')),10)) * 3)); 
          asset_contract_transacted = (parseInt((block.receipts[10].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
-
-         console.log(' ');  /* blank line */
-
-         /* ----------------------------------------------------------------------------- */
-         console.log('Checking results of : Buyer releases funds from the contract.');      
-         /* ----------------------------------------------------------------------------- */    
 
          /* Check seller balance. Expect initial balance added with sell price. */
          asset_seller_expected   = (asset_seller_initial + (parseInt((price.replace('u','0')),10)));      /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
@@ -290,7 +285,7 @@ Clarinet.test({
         */
 
         console.log(' ');                            /* blank line */
-        console.log('Good luck to all Clarinauts!  May Satoshi\'s force be with us all!');
+        console.log('Good luck Clarinauts!  May Satoshi\'s force be with you.');
         console.log(' ');                            /* blank line */
 
 
