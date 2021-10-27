@@ -104,7 +104,13 @@
   (var-get principal-mediator))
 
 (define-private (set-principal-mediator (principal-value (optional principal)))
-  (var-set principal-mediator principal-value))  
+  (begin
+    (var-set principal-mediator principal-value)
+  )
+)
+
+(define-read-only (get-balance-mediator)  ;; for Clarinet testing only
+  (ok (stx-get-balance (unwrap! (get-principal-mediator) (err u73219)))))
 
 (define-read-only (get-state-seller)
   (var-get state-seller))
@@ -141,6 +147,21 @@
   )
 )
 
+;; refactor. do this later.
+;;(define-private (is-state-ready)
+;;(begin
+;;  ;; check if contract status is eligible for the next round
+;;  (asserts! (or (and (is-eq (get-state-seller)   u0) 
+;;                     (is-eq (get-state-buyer)    u0)
+;;                     (is-eq (get-state-mediator) u0))
+;;                (and (is-eq (get-state-seller)   u2) 
+;;                     (is-eq (get-state-buyer)    u3)
+;;                     (is-eq (get-state-mediator) u0)))         
+;;            (err "lol")
+;;  ) ;; <asserts! end>
+;;)
+
+
 ;; Seller sends a bill.
 ;; Before state : [0][0][0] or [u2, u3, u0] DO THIS!!!
 ;; After  state : [1][0][0]
@@ -160,7 +181,7 @@
     (set-state-seller   u1)
     (set-state-buyer    u0)
     (set-state-mediator u0)
-    (var-set price price-request)
+    (set-price price-request)
     (ok (status-of-contract))
   ) ;; <begin end>
 )
@@ -287,7 +308,7 @@
   ) ;; /begin
 )
 
-;; Mediator accepts responsibility.
+;; Mediator accepts responsibility and buys in at set price. 
 ;; Before state : [>=1][>=1][1]
 ;; After  state : [>=1][>=1][2]
 (define-public (mediate-accept)
@@ -304,6 +325,7 @@
     ) ;; /asserts!
 
     (set-principal-mediator (some tx-sender))
+    (try! (transfer-to-contract (get-price)))  ;; mediator buys in
     (set-state-mediator u2)
     (ok (status-of-contract))
   ) ;; /begin
