@@ -35,10 +35,9 @@
 ;; --------------------
 ;;  Variables
 ;; --------------------
-(define-data-var principal-seller   principal tx-sender)
-;;(define-data-var principal-seller   (optional principal) none)  ;; why do I need "optional" here? so i can set to "none"?
-(define-data-var principal-buyer    (optional principal) none)
-(define-data-var principal-mediator (optional principal) none)
+(define-data-var principal-seller   principal tx-sender)  ;; initial value set to tx-sender, but will be overwritten later. to avoid "optional" and "unwrap"
+(define-data-var principal-buyer    principal tx-sender)  ;; initial value set to tx-sender, but will be overwritten later.
+(define-data-var principal-mediator (optional principal) none) ;; initial value set to tx-sender, but will be overwritten later.
 
 (define-data-var state-seller   uint u0)  ;; seller status - 0, 1, 2, 3, 4
 (define-data-var state-buyer    uint u0)
