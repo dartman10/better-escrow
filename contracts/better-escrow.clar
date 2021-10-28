@@ -37,7 +37,7 @@
 ;; --------------------
 (define-data-var principal-seller   principal tx-sender)  ;; initial value set to tx-sender, but will be overwritten later. to avoid "optional", "unwrap" and "some"
 (define-data-var principal-buyer    principal tx-sender)  ;; initial value set to tx-sender, but will be overwritten later.
-(define-data-var principal-mediator (optional principal) none) ;; initial value set to tx-sender, but will be overwritten later.
+(define-data-var principal-mediator principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
 
 (define-data-var state-seller   uint u0)  ;; seller status - 0, 1, 2, 3, 4
 (define-data-var state-buyer    uint u0)
@@ -85,11 +85,9 @@
   (var-get principal-seller))
 
 (define-read-only (get-balance-seller)  ;; for Clarinet testing only
-  ;;(ok (stx-get-balance (unwrap! (get-principal-seller) (err u73211))))   www
   (ok (stx-get-balance (get-principal-seller))) 
 )
 
-;;(define-private (set-principal-seller (principal-value (optional principal)))  www
 (define-private (set-principal-seller (principal-value principal)) 
   (var-set principal-seller principal-value))
 
@@ -105,14 +103,14 @@
 (define-read-only (get-principal-mediator)
   (var-get principal-mediator))
 
-(define-private (set-principal-mediator (principal-value (optional principal)))
+(define-private (set-principal-mediator (principal-value principal))
   (begin
     (var-set principal-mediator principal-value)
   )
 )
 
 (define-read-only (get-balance-mediator)  ;; for Clarinet testing only
-  (ok (stx-get-balance (unwrap! (get-principal-mediator) (err u73219)))))
+  (ok (stx-get-balance (get-principal-mediator))))
 
 (define-read-only (get-state-seller)
   (var-get state-seller))
@@ -179,7 +177,6 @@
               (err "lol")
     ) ;; <asserts! end>
 
-    ;;(set-principal-seller (some tx-sender))  www
     (set-principal-seller tx-sender) 
     (set-state-seller   u1)
     (set-state-buyer    u0)
@@ -216,7 +213,7 @@
                    (is-eq (get-state-mediator) u0))              
               (err u2)
     ) ;; /asserts!
-    ;;(asserts! (is-eq (some tx-sender) (get-principal-seller)) (err u1))    www
+    
     (asserts! (is-eq tx-sender (get-principal-seller)) (err u1))   
     (try! (transfer-to-contract (get-price)))  ;; too many try!s
     (set-state-seller u2)
@@ -276,8 +273,7 @@
   (begin
     ;; as-contract replaces tx-sender inside the closure. get it? lol. easy-peasy.
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-buyer))))  ;; send funds to buyer
-    ;;(try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (unwrap! (get-principal-seller) (err u728)))))  ;; send funds to seller www
-    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send funds to seller www
+    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send funds to seller 
     (ok "po")
   )
 )
@@ -304,7 +300,6 @@
     ) ;; /asserts!
 
     (asserts! (or (is-eq tx-sender (get-principal-buyer))
-                  ;;(is-eq tx-sender (unwrap! (get-principal-seller) (err u119)))) www
                   (is-eq tx-sender (get-principal-seller)))
               (err u121)
     ) ;; /asserts!
@@ -330,7 +325,7 @@
               (err u131)
     ) ;; /asserts!
 
-    (set-principal-mediator (some tx-sender))
+    (set-principal-mediator tx-sender)
     (try! (transfer-to-contract (get-price)))  ;; mediator buys in
     (set-state-mediator u2)
     (ok (status-of-contract))
@@ -344,7 +339,6 @@
   (begin
 
     ;; Check if tx-sender is Seller
-    ;;(asserts! (is-eq tx-sender (unwrap! (get-principal-seller)  (err u1000))) www
     (asserts! (is-eq tx-sender (get-principal-seller))
               (err u1001)
     ) ;; /asserts!
@@ -394,7 +388,7 @@
 (define-public (mediator-decides-good)
   (begin
     ;; Check if tx-sender is Mediator
-    (asserts! (is-eq tx-sender (unwrap! (get-principal-mediator)  (err u1020)))
+    (asserts! (is-eq tx-sender (get-principal-mediator))
               (err u1021)
     ) ;; /asserts!
 
@@ -419,7 +413,7 @@
 (define-public (mediator-decides-bad)
   (begin
     ;; Check if tx-sender is Mediator
-    (asserts! (is-eq tx-sender (unwrap! (get-principal-mediator)  (err u1030)))
+    (asserts! (is-eq tx-sender (get-principal-mediator))
               (err u1031)
     ) ;; /asserts!
 
