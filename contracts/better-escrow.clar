@@ -35,7 +35,8 @@
 ;; --------------------
 ;;  Variables
 ;; --------------------
-(define-data-var principal-seller   (optional principal) none)  ;; why do I need "optional" here? so i can set to "none"?
+(define-data-var principal-seller   principal tx-sender)
+;;(define-data-var principal-seller   (optional principal) none)  ;; why do I need "optional" here? so i can set to "none"?
 (define-data-var principal-buyer    (optional principal) none)
 (define-data-var principal-mediator (optional principal) none)
 
@@ -85,10 +86,12 @@
   (var-get principal-seller))
 
 (define-read-only (get-balance-seller)  ;; for Clarinet testing only
-  (ok (stx-get-balance (unwrap! (get-principal-seller) (err u73211))))
+  ;;(ok (stx-get-balance (unwrap! (get-principal-seller) (err u73211))))   www
+  (ok (stx-get-balance (get-principal-seller))) 
 )
 
-(define-private (set-principal-seller (principal-value (optional principal)))
+;;(define-private (set-principal-seller (principal-value (optional principal)))  www
+(define-private (set-principal-seller (principal-value principal)) 
   (var-set principal-seller principal-value))
 
 (define-read-only (get-principal-buyer)
@@ -177,7 +180,8 @@
               (err "lol")
     ) ;; <asserts! end>
 
-    (set-principal-seller (some tx-sender))
+    ;;(set-principal-seller (some tx-sender))  www
+    (set-principal-seller tx-sender) 
     (set-state-seller   u1)
     (set-state-buyer    u0)
     (set-state-mediator u0)
@@ -213,7 +217,8 @@
                    (is-eq (get-state-mediator) u0))              
               (err u2)
     ) ;; /asserts!
-    (asserts! (is-eq (some tx-sender) (get-principal-seller)) (err u1))    
+    ;;(asserts! (is-eq (some tx-sender) (get-principal-seller)) (err u1))    www
+    (asserts! (is-eq tx-sender (get-principal-seller)) (err u1))   
     (try! (transfer-to-contract (get-price)))  ;; too many try!s
     (set-state-seller u2)
     (ok (status-of-contract))
@@ -272,7 +277,8 @@
   (begin
     ;; as-contract replaces tx-sender inside the closure. get it? lol. easy-peasy.
     (try! (as-contract (stx-transfer? (get-price) tx-sender (unwrap! (get-principal-buyer) (err u727)))))  ;; send funds to buyer
-    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (unwrap! (get-principal-seller) (err u728)))))  ;; send funds to seller
+    ;;(try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (unwrap! (get-principal-seller) (err u728)))))  ;; send funds to seller www
+    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send funds to seller www
     (ok "po")
   )
 )
@@ -299,7 +305,8 @@
     ) ;; /asserts!
 
     (asserts! (or (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u118)))
-                  (is-eq tx-sender (unwrap! (get-principal-seller) (err u119))))
+                  ;;(is-eq tx-sender (unwrap! (get-principal-seller) (err u119)))) www
+                  (is-eq tx-sender (get-principal-seller)))
               (err u121)
     ) ;; /asserts!
 
@@ -320,7 +327,8 @@
     ) ;; /asserts!
 
     (asserts! (not  (or (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u128)))
-                        (is-eq tx-sender (unwrap! (get-principal-seller) (err u129)))))
+                        ;;(is-eq tx-sender (unwrap! (get-principal-seller) (err u129))))) www
+                        (is-eq tx-sender (get-principal-seller))))
               (err u131)
     ) ;; /asserts!
 
@@ -338,7 +346,8 @@
   (begin
 
     ;; Check if tx-sender is Seller
-    (asserts! (is-eq tx-sender (unwrap! (get-principal-seller)  (err u1000)))
+    ;;(asserts! (is-eq tx-sender (unwrap! (get-principal-seller)  (err u1000))) www
+    (asserts! (is-eq tx-sender (get-principal-seller))
               (err u1001)
     ) ;; /asserts!
 
@@ -436,7 +445,8 @@
     ;; Buyer or Seller only
     (asserts! (or
                 (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u2118)))
-                (is-eq tx-sender (unwrap! (get-principal-seller) (err u2119)))
+                ;;(is-eq tx-sender (unwrap! (get-principal-seller) (err u2119))) www
+                (is-eq tx-sender (get-principal-seller))
               )
               (err u2121)
     ) ;; /asserts!
@@ -448,7 +458,8 @@
     ) ;; /asserts!
 
     (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-buyer) (err u2727)))))  ;; send funds to buyer
-    (try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u2728)))))  ;; send funds to seller
+    ;;(try! (as-contract (stx-transfer? u10 tx-sender (unwrap! (get-principal-seller) (err u2728)))))  ;; send funds to seller www
+    (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-seller))))  ;; send funds to seller www
     (set-state-seller u6)
     (set-state-buyer  u6)
     (ok (status-of-contract))
@@ -463,7 +474,8 @@
     ;; Buyer or Seller only
     (asserts! (or
                 (is-eq tx-sender (unwrap! (get-principal-buyer)  (err u3118)))
-                (is-eq tx-sender (unwrap! (get-principal-seller) (err u3119)))
+                ;;(is-eq tx-sender (unwrap! (get-principal-seller) (err u3119))) www
+                (is-eq tx-sender (get-principal-seller))
               )
               (err u3121)
     ) ;; /asserts!
@@ -475,7 +487,8 @@
     ) ;; /asserts!
 
     (try! (as-contract (stx-transfer? (get-price) tx-sender (unwrap! (get-principal-buyer) (err u3727)))))  ;; send collateral funds to buyer
-    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (unwrap! (get-principal-seller) (err u3728)))))  ;; send collateral funds plus price to seller
+    ;;(try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (unwrap! (get-principal-seller) (err u3728)))))  ;; send collateral funds plus price to seller
+    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send collateral funds plus price to seller
     (set-state-seller u7)
     (set-state-buyer  u7)
     (ok (status-of-contract))

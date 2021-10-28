@@ -284,8 +284,9 @@ Clarinet.test({
          assertEquals(asset_buyer_transacted, asset_buyer_expected); 
 
 
+/*
 xxxxx add the mediator here. also need the smart contract to give the Mediator's money back lol
-
+*/
          /* Check principal contract balance. Expect balance equal to initial amount. Though initial zero. */
          asset_contract_expected   = asset_contract_initial; 
          asset_contract_transacted = (parseInt((block.receipts[25].result.expectOk()).replace('u','0')));
