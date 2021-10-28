@@ -32,6 +32,16 @@
 ;; --------------------
 (define-constant ERR_STX_TRANSFER u0)
 
+;; Statuses or life stages of an escrow contract.
+(define-constant state-initial           u6000)  ;; Day 0
+(define-constant state-seller-initiated  u6100)  ;; Seller initiated an escrow contract.
+(define-constant state-buyer-accepted    u6110)  ;; Buyer accepted terms of contract.
+(define-constant state-seller-buys-in    u6210)  ;; Seller accepts the buyer and buys in with collateral.
+(define-constant state-buyer-buys-in     u6220)  ;; Buyer buys in with the sum of price and collateral.
+(define-constant state-buyer-is-happy    u6230)  ;; Buyer receives the product in agreed condition and is happy with the transaction.
+
+(define-data-var state-of-escrow uint u6000)
+
 ;; --------------------
 ;;  Variables
 ;; --------------------
@@ -48,6 +58,16 @@
 
 ;; private functions
 ;; 
+
+(define-read-only (is-state-initial)
+  (is-eq (var-get state-of-escrow) state-initial)
+)
+
+(define-read-only (is-state-buyer-happy)
+  (is-eq (var-get state-of-escrow) state-buyer-is-happy)
+)
+
+;;(asserts! (is-eq tx-sender (get-principal-seller)) (err u1))   
 
 ;; public functions
 
@@ -167,23 +187,14 @@
 ;; After  state : [1][0][0]
 (define-public (bill-create (price-request uint))
   (begin
-    ;; check if contract status is eligible for the next round
-    (asserts! (or (and (is-eq (get-state-seller)   u0) 
-                       (is-eq (get-state-buyer)    u0)
-                       (is-eq (get-state-mediator) u0))
-                  (and (is-eq (get-state-seller)   u2) 
-                       (is-eq (get-state-buyer)    u3)
-                       (is-eq (get-state-mediator) u0)))         
-              (err "lol")
-    ) ;; <asserts! end>
-
+    (asserts! (or (is-state-initial) (is-state-buyer-happy)) (err "lol")) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender) 
     (set-state-seller   u1)
     (set-state-buyer    u0)
     (set-state-mediator u0)
     (set-price price-request)
     (ok (status-of-contract))
-  ) ;; <begin end>
+  )
 )
 
 ;; Buyer accepts terms of the bill, no sending of funds yet.
