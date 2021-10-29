@@ -198,24 +198,7 @@
   (ok (var-get state-of-escrow))
 )
 
-;; refactor. do this later.
-;;(define-private (is-state-ready)
-;;(begin
-;;  ;; check if contract status is eligible for the next round
-;;  (asserts! (or (and (is-eq (get-state-seller)   u0) 
-;;                     (is-eq (get-state-buyer)    u0)
-;;                     (is-eq (get-state-mediator) u0))
-;;                (and (is-eq (get-state-seller)   u2) 
-;;                     (is-eq (get-state-buyer)    u3)
-;;                     (is-eq (get-state-mediator) u0)))         
-;;            (err "lol")
-;;  ) ;; <asserts! end>
-;;)
-
-
 ;; Seller sends a bill.
-;; Before state : [0][0][0] or [u2, u3, u0] DO THIS!!!
-;; After  state : [1][0][0]
 (define-public (bill-create (price-request uint))
   (begin
     (asserts! (or (is-state-initial) (is-state-buyer-happy)) (err "lol")) ;; check if contract status is eligible for the next round
@@ -227,8 +210,6 @@
 )
 
 ;; Buyer accepts terms of the bill, no sending of funds yet.
-;; Before state : [1][0][0]
-;; After  state : [1][1][0]
 (define-public (bill-accept)
   (begin
     (asserts! (is-state-seller-initiated) (err "no way"))
@@ -239,8 +220,6 @@
 )
 
 ;; Seller accepts Buyer and confirm.  Sends fund and locked.
-;; Before state : [1][1][0]
-;; After  state : [2][1][0]
 (define-public (fund-seller)
   (begin
     (asserts! (is-state-buyer-accepted) (err u2)) ;; check escrow status
@@ -252,8 +231,6 @@
 )
 
 ;; Buyer reviews seller fund and send own fund. Contract now locked and loaded.
-;; Before state : [2][1][0]
-;; After  state : [2][2][0]
 (define-public (fund-buyer)
   (begin
     (asserts! (is-state-seller-buys-in) (err u777)) ;; check contract status
@@ -267,8 +244,6 @@
 ;; Buyer signals product received and good condition.
 ;; Buyer release payment to seller.
 ;; Contract releases collaterals too.
-;; Before state : [2][2][0]
-;; After  state : [2][3][0]
 (define-public (fund-release)
   (begin
     (asserts! (is-state-buyer-buys-in) (err u111)) ;; check first 
@@ -279,6 +254,7 @@
   ) ;; /begin
 )
 
+;; Transfer funds into principal contract.
 (define-private (transfer-to-contract (fund-amount uint))
   (begin
     (try! (stx-transfer? fund-amount tx-sender (as-contract tx-sender)))
@@ -304,8 +280,6 @@
 ;;   - Both Seller and Buyer has to sign if they like to cancel the mediator request;
 ;;   - The mediator has to sign contract as acceptance of responsibility.
 ;;   - The mediator has to lock funds too equal to the price. To motivate mediator to mediate without delay.
-;; Before state : [>=1][>=1][0] or [>=1][>=1][0] 
-;; After  state : [>=1][>=1][1] or [>=1][>=1][1]
 ;; Question: How would I know who requested the Mediator? I need to add a unique status combination.
 
 (define-public (request-mediator)
@@ -320,8 +294,6 @@
 )
 
 ;; Mediator accepts responsibility and buys in at set price. 
-;; Before state : [>=1][>=1][1]
-;; After  state : [>=1][>=1][2]
 (define-public (mediate-accept)
   (begin
     (asserts! (is-state-mediator-requested) (err u141))
@@ -338,8 +310,6 @@
 )
 
 ;; Seller vets Mediator then confirms
-;; Before state : [>=1 and <5][>=1][2]
-;; After  state : [5][>=1][2]
 (define-public (mediator-confirmation-seller)
   (begin
     (asserts! (is-eq tx-sender (get-principal-seller)) (err u1001))  ;; Check if tx-sender is Seller

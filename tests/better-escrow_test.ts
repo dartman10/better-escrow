@@ -243,12 +243,12 @@ Clarinet.test({
          console.log('mediator-confirmation-seller = ' + block.receipts[18].result + ' --> Seller approves the mediator');
          console.log('mediator-confirmation-buyer  = ' + block.receipts[19].result + ' --> Buyer approves the mediator');
 
-         console.log('mediator-decides-good = ' + block.receipts[20].result + ' --> Mediator favors the original deal. Disburse funds.');
+         console.log('mediator-decides-good = ' + block.receipts[20].result  + ' --> Mediator favors the original deal. Disburse funds.');
 
-         console.log('get-balance-seller    = ' + block.receipts[21].result);
-         console.log('get-balance-buyer     = ' + block.receipts[22].result);
-         console.log('get-balance-mediator  = ' + block.receipts[23].result);
-         console.log('get-balance-contract  = ' + block.receipts[24].result + ' --> Contract principal final asset should be zero.');
+         console.log('get-balance-seller    = ' + block.receipts[21].result  + ' --> Seller gets paid, minus mediator commission');
+         console.log('get-balance-buyer     = ' + block.receipts[22].result  + ' --> Buyer paid for the item price, minus mediator commission.');
+         console.log('get-balance-mediator  = ' + block.receipts[23].result  + ' --> Mediator gets paid commission.');;
+         console.log('get-balance-contract  = ' + block.receipts[24].result  + ' --> Contract principal final asset should be zero.');
 
          console.log(' ');  /* blank line */
 
