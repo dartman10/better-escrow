@@ -40,6 +40,14 @@
 (define-constant state-buyer-buys-in     u6220)  ;; Buyer buys in with the sum of price and collateral.
 (define-constant state-buyer-is-happy    u6230)  ;; Buyer receives the product in agreed condition and is happy with the transaction.
 
+(define-constant state-mediator-requested u6221)  ;; 
+(define-constant state-mediator-accepted  u6222)  ;; 
+(define-constant state-seller-ok-mediator u6322)  ;; 
+(define-constant state-buyer-ok-mediator  u6332)  ;; 
+(define-constant state-mediator-says-good u6333)  ;; 
+(define-constant state-mediator-says-bad  u6334)  ;; 
+
+
 (define-data-var state-of-escrow uint u6000)
 
 ;; --------------------
@@ -77,6 +85,25 @@
 
 (define-read-only (is-state-buyer-buys-in )
   (is-eq (var-get state-of-escrow) state-buyer-buys-in))
+
+(define-read-only (is-state-mediator-requested )
+  (is-eq (var-get state-of-escrow) state-mediator-requested))
+
+(define-read-only (is-state-mediator-accepted )
+  (is-eq (var-get state-of-escrow) state-mediator-accepted))
+
+(define-read-only (is-state-seller-ok-mediator )
+  (is-eq (var-get state-of-escrow) state-seller-ok-mediator))
+
+(define-read-only (is-state-buyer-ok-mediator )
+  (is-eq (var-get state-of-escrow) state-buyer-ok-mediator))
+
+(define-read-only (is-state-mediator-says-good)
+  (is-eq (var-get state-of-escrow) state-mediator-says-good))
+
+(define-read-only (is-state-mediator-says-bad)
+  (is-eq (var-get state-of-escrow) state-mediator-says-bad))
+
 
 ;; --- Status setters --
 (define-private (set-escrow-status (state-new uint))
@@ -244,7 +271,6 @@
 ;; After  state : [2][3][0]
 (define-public (fund-release)
   (begin
-    ;; check first the status of escrow contract
     (asserts! (is-state-buyer-buys-in) (err u111)) ;; check first 
     (asserts! (is-eq tx-sender (get-principal-buyer)) (err u112)) ;; Only the buyer can release the funds.
     (try! (transfer-from-contract))     ;; try! returns a uint. try! is needed for intermediate blah blah
@@ -288,8 +314,7 @@
     (asserts! (or (is-eq tx-sender (get-principal-buyer))
                   (is-eq tx-sender (get-principal-seller)))
               (err u121))
-
-    (set-state-mediator u1)
+    (set-escrow-status state-mediator-requested)
     (ok (status-of-contract))
   )
 )
