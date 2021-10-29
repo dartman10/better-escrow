@@ -59,20 +59,31 @@
 ;; private functions
 ;; 
 
+;; -- Escrow status inquiries --
 (define-read-only (is-state-initial)
-  (is-eq (var-get state-of-escrow) state-initial)
-)
+  (is-eq (var-get state-of-escrow) state-initial))
 
 (define-read-only (is-state-buyer-happy)
-  (is-eq (var-get state-of-escrow) state-buyer-is-happy)
+  (is-eq (var-get state-of-escrow) state-buyer-is-happy))
+
+(define-read-only (is-state-seller-initiated)
+  (is-eq (var-get state-of-escrow) state-seller-initiated))
+
+(define-read-only (is-state-buyer-accepted)
+  (is-eq (var-get state-of-escrow) state-buyer-accepted))
+
+(define-read-only (is-state-seller-buys-in)
+  (is-eq (var-get state-of-escrow) state-seller-buys-in))
+
+(define-read-only (is-state-buyer-buys-in )
+  (is-eq (var-get state-of-escrow) state-buyer-buys-in))
+
+;; --- Status setters --
+(define-private (set-escrow-status (state-new uint))
+  (var-set state-of-escrow state-new)
 )
 
-;;(asserts! (is-eq tx-sender (get-principal-seller)) (err u1))   
-
-;; public functions
-
 ;; echo function - to check if contract is reachable
-
 (define-read-only (echo (shout-out (string-ascii 100)))
    (ok shout-out))
 
@@ -97,7 +108,6 @@
 )
 
 (define-read-only (get-balance-contract)  ;; for Clarinet testing only
-  ;;(ok (stx-get-balance (unwrap! (get-principal-contract) (err u73215))))
   (ok (stx-get-balance (get-principal-contract)))
 )
 
@@ -158,13 +168,7 @@
 
 ;; Return status of contract
 (define-public (status-of-contract)
-  (begin
-    (ok (list (get-state-seller) 
-              (get-state-buyer) 
-              (get-state-mediator)
-        )
-    )
-  )
+  (ok (var-get state-of-escrow))
 )
 
 ;; refactor. do this later.
@@ -188,11 +192,9 @@
 (define-public (bill-create (price-request uint))
   (begin
     (asserts! (or (is-state-initial) (is-state-buyer-happy)) (err "lol")) ;; check if contract status is eligible for the next round
-    (set-principal-seller tx-sender) 
-    (set-state-seller   u1)
-    (set-state-buyer    u0)
-    (set-state-mediator u0)
+    (set-principal-seller tx-sender)
     (set-price price-request)
+    (set-escrow-status state-seller-initiated)
     (ok (status-of-contract))
   )
 )
@@ -202,15 +204,11 @@
 ;; After  state : [1][1][0]
 (define-public (bill-accept)
   (begin
-    (asserts! (and (is-eq (get-state-seller)   u1) 
-                   (is-eq (get-state-buyer)    u0)
-                   (is-eq (get-state-mediator) u0))              
-              (err "lol")
-    ) ;; /asserts!
+    (asserts! (is-state-seller-initiated) (err "no way"))
     (set-principal-buyer tx-sender)
-    (set-state-buyer u1)
+    (set-escrow-status state-buyer-accepted)
     (ok (status-of-contract))
-  ) ;; /begin
+  )
 )
 
 ;; Seller accepts Buyer and confirm.  Sends fund and locked.
@@ -218,16 +216,10 @@
 ;; After  state : [2][1][0]
 (define-public (fund-seller)
   (begin
-    ;; check first the status of escrow contract
-    (asserts! (and (is-eq (get-state-seller)   u1) 
-                   (is-eq (get-state-buyer)    u1) 
-                   (is-eq (get-state-mediator) u0))              
-              (err u2)
-    ) ;; /asserts!
-    
+    (asserts! (is-state-buyer-accepted) (err u2)) ;; check escrow status
     (asserts! (is-eq tx-sender (get-principal-seller)) (err u1))   
     (try! (transfer-to-contract (get-price)))  ;; too many try!s
-    (set-state-seller u2)
+    (set-escrow-status state-seller-buys-in)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -237,15 +229,10 @@
 ;; After  state : [2][2][0]
 (define-public (fund-buyer)
   (begin
-    ;; check first the status of escrow contract
-    (asserts! (and (is-eq (get-state-seller)   u2) 
-                   (is-eq (get-state-buyer)    u1)
-                   (is-eq (get-state-mediator) u0))
-              (err u777)
-    ) ;; /asserts!
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err u666)) 
+    (asserts! (is-state-seller-buys-in) (err u777)) ;; check contract status
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err u666)) ;; make sure buyer is calling
     (try! (transfer-to-contract (* (get-price) u2)))   ;; Buyer puts in funds twice as much as the seller's funds. Half for collateral, half for price of goods.
-    (set-state-buyer u2)
+    (set-escrow-status state-buyer-buys-in)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -258,17 +245,10 @@
 (define-public (fund-release)
   (begin
     ;; check first the status of escrow contract
-    (asserts! (and (is-eq (get-state-seller)   u2) 
-                   (is-eq (get-state-buyer)    u2)
-                   (is-eq (get-state-mediator) u0))              
-              (err u111)
-    ) ;; /asserts!
-
-    ;; Only the buyer can release the funds.
-    ;; unwrap is required for optional principal --> Analysis error: expecting expression of type '(optional principal)', found 'principal'
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err u112))
+    (asserts! (is-state-buyer-buys-in) (err u111)) ;; check first 
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err u112)) ;; Only the buyer can release the funds.
     (try! (transfer-from-contract))     ;; try! returns a uint. try! is needed for intermediate blah blah
-    (set-state-buyer u3)
+    (set-escrow-status state-buyer-is-happy)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -304,20 +284,14 @@
 
 (define-public (request-mediator)
   (begin
-    (asserts! (and (>=    (get-state-seller)   u1) 
-                   (>=    (get-state-buyer)    u1)
-                   (is-eq (get-state-mediator) u0))              
-              (err u121)
-    ) ;; /asserts!
-
+    (asserts! (is-state-buyer-buys-in) (err u121))
     (asserts! (or (is-eq tx-sender (get-principal-buyer))
                   (is-eq tx-sender (get-principal-seller)))
-              (err u121)
-    ) ;; /asserts!
+              (err u121))
 
     (set-state-mediator u1)
     (ok (status-of-contract))
-  ) ;; /begin
+  )
 )
 
 ;; Mediator accepts responsibility and buys in at set price. 

@@ -19,13 +19,23 @@ Clarinet.test({
            Test the basic functions.
         ------------------------------------------------------------- 
         */
+        console.log(' ');
+        console.log('----------------------------');
+        console.log('-- Test basic functions.  --');          
+        console.log('----------------------------');            
+        console.log(' ');
+
         let block = chain.mineBlock([
            Tx.contractCall('better-escrow', 'about', [], seller.address),
            Tx.contractCall('better-escrow', 'status-of-contract', [], seller.address),
         ]);
+
+        console.log('about              = ' + block.receipts[0].result);
+        console.log('status-of-contract = ' + block.receipts[1].result);
+
         assertEquals(block.receipts.length, 2);
         assertEquals(block.receipts[0].result.expectOk(), '"Just Another Escrow Application"');
-        assertEquals(block.receipts[1].result.expectOk(), '[u0, u0, u0]');
+        assertEquals(block.receipts[1].result.expectOk(), 'u6000');
 
         /*
         ------------------------------------------------------------ 
@@ -94,11 +104,11 @@ Clarinet.test({
          console.log('Buyer asset    = ' + block.receipts[13].result);
          console.log('Contract asset = ' + block.receipts[14].result);
 
-         assertEquals(block.receipts[1].result.expectOk().expectOk(),  '[u1, u0, u0]');  /* bill-create   */
-         assertEquals(block.receipts[2].result.expectOk().expectOk(),  '[u1, u1, u0]');  /* bill-accept   */
-         assertEquals(block.receipts[6].result.expectOk().expectOk(),  '[u2, u1, u0]');  /* fund-seller   */
-         assertEquals(block.receipts[7].result.expectOk().expectOk(),  '[u2, u2, u0]');  /* fund-buyer    */
-         assertEquals(block.receipts[11].result.expectOk().expectOk(), '[u2, u3, u0]');  /* fund-release  */
+         assertEquals(block.receipts[1].result.expectOk().expectOk(),  'u6100');  /* bill-create   */
+         assertEquals(block.receipts[2].result.expectOk().expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[6].result.expectOk().expectOk(),  'u6210');  /* fund-seller   */
+         assertEquals(block.receipts[7].result.expectOk().expectOk(),  'u6220');  /* fund-buyer    */
+         assertEquals(block.receipts[11].result.expectOk().expectOk(), 'u6230');  /* fund-release  */
        
          console.log(' ');  /* blank line */
 
