@@ -362,9 +362,9 @@
 ;;  - Buyer gets all his money back minus 5% (for mediator commission).
 (define-private (fund-refund)
   (begin
-    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator
-    (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-buyer))))  ;; send funds to buyer
-    (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-seller))))  ;; send funds to seller 
+    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral
+    (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission) u2)) tx-sender (get-principal-buyer))))  ;; send collateral back to buyer minus half of mediator commission
+    (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-seller))))  ;; send collateral back to seller minus half of mediator commission
     (ok u0)
   )
 )
@@ -376,9 +376,9 @@
 ;; Mediator decided good, so disburse funds appropriately.
 (define-private (fund-disburse)
   (begin
-    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator  
-;;    (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-buyer))))  ;; send collateral funds to buyer
-;;    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send collateral funds plus price to seller
+    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral
+    (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission) u2)) tx-sender (get-principal-buyer))))  ;; send collateral back to buyer minus half of mediator commission, and minus the item price
+    (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission) u2)) tx-sender (get-principal-seller))))  ;; send collateral funds plus price to seller, minus half of mediator commission
     (ok u0)
   )
 )
