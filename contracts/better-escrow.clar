@@ -83,19 +83,19 @@
 (define-read-only (is-state-seller-buys-in)
   (is-eq (var-get state-of-escrow) state-seller-buys-in))
 
-(define-read-only (is-state-buyer-buys-in )
+(define-read-only (is-state-buyer-buys-in)
   (is-eq (var-get state-of-escrow) state-buyer-buys-in))
 
-(define-read-only (is-state-mediator-requested )
+(define-read-only (is-state-mediator-requested)
   (is-eq (var-get state-of-escrow) state-mediator-requested))
 
-(define-read-only (is-state-mediator-accepted )
+(define-read-only (is-state-mediator-accepted)
   (is-eq (var-get state-of-escrow) state-mediator-accepted))
 
-(define-read-only (is-state-seller-ok-mediator )
+(define-read-only (is-state-seller-ok-mediator)
   (is-eq (var-get state-of-escrow) state-seller-ok-mediator))
 
-(define-read-only (is-state-buyer-ok-mediator )
+(define-read-only (is-state-buyer-ok-mediator)
   (is-eq (var-get state-of-escrow) state-buyer-ok-mediator))
 
 (define-read-only (is-state-mediator-says-good)
@@ -324,67 +324,39 @@
 ;; After  state : [>=1][>=1][2]
 (define-public (mediate-accept)
   (begin
-    (asserts! (and (>=    (get-state-seller)   u1)
-                   (>=    (get-state-buyer)    u1)
-                   (is-eq (get-state-mediator) u1))
-              (err u141)
-    ) ;; /asserts!
-
+    (asserts! (is-state-mediator-requested) (err u141))
     (asserts! (not  (or (is-eq tx-sender (get-principal-buyer))
                         (is-eq tx-sender (get-principal-seller))))
-              (err u131)
+              (err u131)  ;; error - neither buyer nor seller can be a mediator
     ) ;; /asserts!
 
-    (set-principal-mediator tx-sender)
+    (set-principal-mediator tx-sender)  ;; the mediator is here. welcome sir.
     (try! (transfer-to-contract (get-price)))  ;; mediator buys in
-    (set-state-mediator u2)
+    (set-escrow-status state-mediator-accepted)
     (ok (status-of-contract))
   ) ;; /begin
 )
 
-;; Now that a Mediator accepted, both Seller and Buyer needs to signoff on acceptance
+;; Seller vets Mediator then confirms
 ;; Before state : [>=1 and <5][>=1][2]
 ;; After  state : [5][>=1][2]
 (define-public (mediator-confirmation-seller)
   (begin
-
-    ;; Check if tx-sender is Seller
-    (asserts! (is-eq tx-sender (get-principal-seller))
-              (err u1001)
-    ) ;; /asserts!
-
-    ;; Check contract state
-    (asserts! (and (>=    (get-state-seller)   u1)
-                   (<     (get-state-seller)   u5)
-                   (>=    (get-state-buyer)    u1)
-                   (is-eq (get-state-mediator) u2))
-              (err u142)
-    ) ;; /asserts!
-
-    (set-state-seller u5)
+    (asserts! (is-eq tx-sender (get-principal-seller)) (err u1001))  ;; Check if tx-sender is Seller
+    (asserts! (is-state-mediator-accepted) (err u1002)) ;; seller confirms ahead of buyer. refactor later to allow either buyer or seller to go ahead.
+    (set-escrow-status state-seller-ok-mediator)
     (ok (status-of-contract))
   ) ;; /begin
 )
 
-;; Now that a Mediator accepted, both Seller and Buyer needs to signoff on acceptance
+;; Buyer vets Mediator then confirms
 ;; Before state : [>=1][>=1 and <5][2]
 ;; After  state : [>=][5][2]
 (define-public (mediator-confirmation-buyer)
   (begin
-    ;; Check if tx-sender is Buyer
-    (asserts! (is-eq tx-sender (get-principal-buyer))
-              (err u1011)
-    ) ;; /asserts!
-
-    ;; Check contract state
-    (asserts! (and (>=    (get-state-seller)   u1)
-                   (>=    (get-state-buyer)    u1)
-                   (<     (get-state-buyer)    u5)
-                   (is-eq (get-state-mediator) u2))
-              (err u1012)
-    ) ;; /asserts!
-
-    (set-state-buyer u5)
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err u1011)) ;; Check if tx-sender is Buyer
+    (asserts! (is-state-seller-ok-mediator) (err u1012)) 
+    (set-escrow-status state-buyer-ok-mediator)
     (ok (status-of-contract))
   ) ;; /begin
 )
