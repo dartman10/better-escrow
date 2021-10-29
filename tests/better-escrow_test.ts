@@ -198,12 +198,10 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'mediator-confirmation-seller', [], seller.address),  /* Seller accepted Mediator.      */
             Tx.contractCall('better-escrow', 'mediator-confirmation-buyer', [], buyer.address),    /* Buyer accepted Mediator.       */   
 
-            Tx.contractCall('better-escrow', 'mediator-decides-good', [], mediator.address),       /* Mediator decides good transaction. */
-            Tx.contractCall('better-escrow', 'fund-disburse', [], seller.address),                 /* Seller triggers fund disbursement. */
+            Tx.contractCall('better-escrow', 'mediator-decides-good', [], mediator.address),       /* Mediator decides good transaction. Disburse funds. */
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get updated asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get updated asset. */       
             Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address), /* Get updated asset. */   
-
             Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
 
          ]);
@@ -245,13 +243,12 @@ Clarinet.test({
          console.log('mediator-confirmation-seller = ' + block.receipts[18].result + ' --> Seller approves the mediator');
          console.log('mediator-confirmation-buyer  = ' + block.receipts[19].result + ' --> Buyer approves the mediator');
 
-         console.log('mediator-decides-good = ' + block.receipts[20].result + ' --> Mediator favors the original deal');
-         console.log('fund-disburse         = ' + block.receipts[21].result + ' --> Seller triggers fund disbursement');
+         console.log('mediator-decides-good = ' + block.receipts[20].result + ' --> Mediator favors the original deal. Disburse funds.');
 
-         console.log('get-balance-seller    = ' + block.receipts[22].result);
-         console.log('get-balance-buyer     = ' + block.receipts[23].result);
-         console.log('get-balance-mediator  = ' + block.receipts[24].result);
-         console.log('get-balance-contract  = ' + block.receipts[25].result + ' --> Contract principal final asset should be zero.');
+         console.log('get-balance-seller    = ' + block.receipts[21].result);
+         console.log('get-balance-buyer     = ' + block.receipts[22].result);
+         console.log('get-balance-mediator  = ' + block.receipts[23].result);
+         console.log('get-balance-contract  = ' + block.receipts[24].result + ' --> Contract principal final asset should be zero.');
 
          console.log(' ');  /* blank line */
 
