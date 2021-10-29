@@ -354,20 +354,31 @@
   ) ;; /begin
 )
 
+
 ;; Mediator decided bad, so do refund.
+;; Here's the deal:
+;;  - Mediator gets paid commission, 10% of sell price. 5% each from buyer and seller.
+;;  - Seller gets all his money back minus 5% (for mediator commission).
+;;  - Buyer gets all his money back minus 5% (for mediator commission).
 (define-private (fund-refund)
   (begin
+    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator
     (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-buyer))))  ;; send funds to buyer
     (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-seller))))  ;; send funds to seller 
     (ok u0)
   )
 )
 
+(define-private (get-mediator-commission)
+  (/ (get-price) u10)
+)
+
 ;; Mediator decided good, so disburse funds appropriately.
 (define-private (fund-disburse)
   (begin
-    (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-buyer))))  ;; send collateral funds to buyer
-    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send collateral funds plus price to seller
+    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator  
+;;    (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-buyer))))  ;; send collateral funds to buyer
+;;    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send collateral funds plus price to seller
     (ok u0)
   )
 )

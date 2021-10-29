@@ -215,9 +215,9 @@ Clarinet.test({
          console.log('result count     = ' + block.receipts.length);
           /* assertEquals(block.receipts.length, 20);  /* expected contract call results */
 
-         console.log('get-balance-seller   = ' + block.receipts[1].result);
-         console.log('get-balance-buyer    = ' + block.receipts[2].result);
-         console.log('mediator.balance     = ' + mediator.balance);  /* account.mediator initial balance. at this point, mediator principal is still NONE */          
+         console.log('get-balance-seller   = ' + block.receipts[1].result + ' --> Seller initial balance.');
+         console.log('get-balance-buyer    = ' + block.receipts[2].result + ' --> Buyer initial balance.');
+         console.log('mediator.balance     = ' + mediator.balance + '         --> Mediator initial balance.');  /* account.mediator initial balance. at this point, mediator principal is still NONE */          
          console.log('get-balance-contract = ' + block.receipts[3].result); 
 
          console.log('bill-create          = ' + block.receipts[4].result + ' --> Seller initiates a bill');
