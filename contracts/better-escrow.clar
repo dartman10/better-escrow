@@ -368,6 +368,7 @@
   (begin
     (asserts! (is-eq tx-sender (get-principal-mediator)) (err u1021)) ;; Check if tx-sender is Mediator
     (asserts! (is-state-buyer-ok-mediator) (err u1022)) ;; check if state is ready for this
+    (try! (fund-disburse))
     (set-escrow-status state-mediator-says-good)
     (ok (status-of-contract))
   ) ;; /begin
@@ -377,6 +378,7 @@
   (begin
     (asserts! (is-eq tx-sender (get-principal-mediator)) (err u1031)) ;; Check if tx-sender is Mediator
     (asserts! (is-state-buyer-ok-mediator) (err u1032)) ;; check if state is ready for this
+    (try! (fund-refund))
     (set-escrow-status state-mediator-says-bad)
     (ok (status-of-contract))
   ) ;; /begin
@@ -394,24 +396,8 @@
 ;; Mediator decided good, so disburse funds appropriately.
 (define-private (fund-disburse)
   (begin
-    ;; Buyer or Seller only
-    (asserts! (or
-                (is-eq tx-sender (get-principal-buyer))
-                (is-eq tx-sender (get-principal-seller))
-              )
-              (err u3121)
-    ) ;; /asserts!
-    ;; check first the status of escrow contract
-    (asserts! (and  (is-eq (get-state-seller)   u5) 
-                    (is-eq (get-state-buyer)    u5)
-                    (is-eq (get-state-mediator) u3))
-              (err u3111)
-    ) ;; /asserts!
-
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-buyer))))  ;; send collateral funds to buyer
     (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send collateral funds plus price to seller
-    (set-state-seller u7)
-    (set-state-buyer  u7)
-    (ok (status-of-contract))
+    (ok u0)
   )
 )
