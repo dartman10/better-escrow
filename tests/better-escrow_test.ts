@@ -161,13 +161,15 @@ Clarinet.test({
         /*
         -----------------------------------------------------------------------------------------------------------------   
            SIMULATE AN ESCROW TRANSACTION WITH A MEDIATOR INVOLVED.
+           In this case, mediator favors the escrow contract as originally agreed by both parties.
         -----------------------------------------------------------------------------------------------------------------
         */
 
         console.log(' ');
-        console.log('-----------------------------------------------------');
-        console.log('-- Simulate an escrow transaction with a Mediator. --');          
-        console.log('-----------------------------------------------------');            
+        console.log('---------------------------------------------------------------------------------------------');
+        console.log('-- Simulate an escrow transaction with a Mediator.                                         --');
+        console.log('-- In this case, mediator favors the escrow contract as originally agreed by both parties. --');
+        console.log('---------------------------------------------------------------------------------------------');
         console.log(' ');
         
         block = chain.mineBlock([

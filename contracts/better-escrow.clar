@@ -350,8 +350,6 @@
 )
 
 ;; Buyer vets Mediator then confirms
-;; Before state : [>=1][>=1 and <5][2]
-;; After  state : [>=][5][2]
 (define-public (mediator-confirmation-buyer)
   (begin
     (asserts! (is-eq tx-sender (get-principal-buyer)) (err u1011)) ;; Check if tx-sender is Buyer
@@ -364,84 +362,37 @@
 ;; Mediator decides. Two possible outcomes (for now):
 ;;  1. Mediator agrees with Seller, so contract will be exercised as agreed originally.
 ;;  2. Mediator agrees with Buyer, so contract will be nullified and give all money back.
-;; Question is, who will sign?
-;; Before state : [5][5][2]
-;; After  state : [>=][5][3]
+;; Question is, do we need signoff from either seller or buyer? Or mediator decision is final and immediately deliver the locked funds?
+
 (define-public (mediator-decides-good)
   (begin
-    ;; Check if tx-sender is Mediator
-    (asserts! (is-eq tx-sender (get-principal-mediator))
-              (err u1021)
-    ) ;; /asserts!
-
-    ;; Check contract state
-    (asserts! (and (is-eq (get-state-seller)   u5)
-                   (is-eq (get-state-buyer)    u5)
-                   (is-eq (get-state-mediator) u2))
-              (err u1022)
-    ) ;; /asserts!
-
-    (set-state-mediator u3)
+    (asserts! (is-eq tx-sender (get-principal-mediator)) (err u1021)) ;; Check if tx-sender is Mediator
+    (asserts! (is-state-buyer-ok-mediator) (err u1022)) ;; check if state is ready for this
+    (set-escrow-status state-mediator-says-good)
     (ok (status-of-contract))
   ) ;; /begin
 )
 
-;; Mediator decides. Two possible outcomes (for now):
-;;  1. Mediator agrees with Seller, so contract will be exercised as agreed originally.
-;;  2. Mediator agrees with Buyer, so contract will be nullified and give all money back.
-;; Question is, who will sign? I think either for now is okay.
-;; Before state : [5][5][2]
-;; After  state : [5][5][4]
 (define-public (mediator-decides-bad)
   (begin
-    ;; Check if tx-sender is Mediator
-    (asserts! (is-eq tx-sender (get-principal-mediator))
-              (err u1031)
-    ) ;; /asserts!
-
-    ;; Check contract state
-    (asserts! (and (is-eq (get-state-seller)   u5)
-                   (is-eq (get-state-buyer)    u5)
-                   (is-eq (get-state-mediator) u2))
-              (err u1032)
-    ) ;; /asserts!
-
-    (set-state-mediator u4)
+    (asserts! (is-eq tx-sender (get-principal-mediator)) (err u1031)) ;; Check if tx-sender is Mediator
+    (asserts! (is-state-buyer-ok-mediator) (err u1032)) ;; check if state is ready for this
+    (set-escrow-status state-mediator-says-bad)
     (ok (status-of-contract))
   ) ;; /begin
 )
 
 ;; Mediator decided bad, so do refund.
-;; Before state : [5][5][4]
-;; After  state : [6][6][4]
-(define-public (fund-refund)
+(define-private (fund-refund)
   (begin
-    ;; Buyer or Seller only
-    (asserts! (or
-                (is-eq tx-sender (get-principal-buyer))
-                (is-eq tx-sender (get-principal-seller))
-              )
-              (err u2121)
-    ) ;; /asserts!
-    ;; check first the status of escrow contract
-    (asserts! (and  (is-eq (get-state-seller)   u5) 
-                    (is-eq (get-state-buyer)    u5)
-                    (is-eq (get-state-mediator) u4))
-              (err u2111)
-    ) ;; /asserts!
-
     (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-buyer))))  ;; send funds to buyer
     (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-seller))))  ;; send funds to seller 
-    (set-state-seller u6)
-    (set-state-buyer  u6)
-    (ok (status-of-contract))
+    (ok u0)
   )
 )
 
 ;; Mediator decided good, so disburse funds appropriately.
-;; Before state : [5][5][3]
-;; After  state : [7][7][3]
-(define-public (fund-disburse)
+(define-private (fund-disburse)
   (begin
     ;; Buyer or Seller only
     (asserts! (or
