@@ -12,7 +12,7 @@ Clarinet.test({
         let mediator  = accounts.get('wallet_7')!;
 
         /* Set the sell price. */
-        let price     = 'u10000';
+        let price     = 'u1000';
 
         /*
         ------------------------------------------------------------ 
@@ -307,15 +307,167 @@ Clarinet.test({
          console.log('Nice. All good in the hood!');
          console.log(' ');                            /* blank line */
 
+
         /*
+        -----------------------------------------------------------------------------------------------------------------   
+           SIMULATE AN ESCROW TRANSACTION WITH A MEDIATOR INVOLVED.
+           In this case, mediator cancels the escrow contract.
+        -----------------------------------------------------------------------------------------------------------------
+        */
+
+        console.log(' ');
+        console.log('---------------------------------------------------------------------------------------------');
+        console.log('-- Simulate an escrow transaction with a Mediator.                                         --');
+        console.log('-- In this case, mediator cancels the escrow contract.                                     --');
+        console.log('---------------------------------------------------------------------------------------------');
+        console.log(' ');
+
+        block = chain.mineBlock([
+
+            Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address), /* Get updated asset. */   
+            Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
+
+            Tx.contractCall('better-escrow', 'bill-create',  [price], seller.address),
+            Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
+
+            Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
+            Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),            
+            Tx.contractCall('better-escrow', 'get-balance-seller',   [], seller.address),   /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',    [], buyer.address),    /* Get updated asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
+
+            Tx.contractCall('better-escrow', 'request-mediator', [], buyer.address),               /* Buyer requested for a Mediator */            
+            Tx.contractCall('better-escrow', 'mediate-accept', [], mediator.address),              /* Mediator accepted.             */
+            Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address),        /* Get updated asset.             */
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], mediator.address),        /* Get updated asset.             */
+            Tx.contractCall('better-escrow', 'mediator-confirmation-seller', [], seller.address),  /* Seller accepted Mediator.      */
+
+            Tx.contractCall('better-escrow', 'mediator-confirmation-buyer', [], buyer.address),    /* Buyer accepted Mediator.       */   
+            Tx.contractCall('better-escrow', 'mediator-decides-bad', [], mediator.address),       /* Mediator decides bad transaction. Disburse funds. */
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get updated asset. */       
+            Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address), /* Get updated asset. */   
+
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
+
+         ]);
+
+         console.log('seller.address   = ' + seller.address);
+         console.log('buyer.address    = ' + buyer.address);
+         console.log('mediator.address = ' + mediator.address);
+         console.log('price            = ' + price);
+         console.log('result count     = ' + block.receipts.length);
+
+         console.log('');
+         console.log('+-----------------------------+--------------------+');
+         console.log('|      Function Name          |   Return value     |');
+         console.log('+-----------------------------+--------------------+');
+         console.log('| get-principal-contract      | ' + block.receipts[0].result);
+         console.log('| get-balance-seller          | ' + block.receipts[1].result + ' --> Seller initial balance.');
+         console.log('| get-balance-buyer           | ' + block.receipts[2].result + ' --> Buyer initial balance.');
+         console.log('| get-balance-mediator        | ' + block.receipts[3].result + ' --> Mediator initial balance.');  /* account.mediator initial balance. at this point, mediator principal is still NONE */          
+         console.log('| get-balance-contract        | ' + block.receipts[4].result); 
+         console.log('| bill-create                 | ' + block.receipts[5].result + ' --> Seller initiates a bill');
+         console.log('| bill-accept                 | ' + block.receipts[6].result + ' --> Buyer accepts the bill');
+         console.log('| get-balance-seller          | ' + block.receipts[7].result);
+         console.log('| get-balance-buyer           | ' + block.receipts[8].result);
+         console.log('| get-balance-contract = ' + block.receipts[9].result);
+         console.log('| fund-seller          = ' + block.receipts[10].result + ' --> Seller funded contract');  
+         console.log('| fund-buyer           = ' + block.receipts[11].result + ' --> Buyer funded contract');
+         console.log('| get-balance-seller   = ' + block.receipts[12].result);
+         console.log('| get-balance-buyer    = ' + block.receipts[13].result);
+         console.log('| get-balance-contract = ' + block.receipts[14].result);
+         console.log('| request-mediator     = ' + block.receipts[15].result + ' --> Seller or buyer requested for a mediator');
+         console.log('| mediate-accept       = ' + block.receipts[16].result + ' --> Mediator accepted and buys in');
+         console.log('| get-balance-mediator = ' + block.receipts[17].result);
+         console.log('| get-balance-contract = ' + block.receipts[18].result);
+         console.log('| mediator-confirmation-seller | ' + block.receipts[19].result + ' --> Seller approves the mediator');
+         console.log('| mediator-confirmation-buyer  | ' + block.receipts[20].result + ' --> Buyer approves the mediator');
+         console.log('| mediator-decides-bad         | ' + block.receipts[21].result  + ' --> Mediator cancels escrow contract. Refunds all around.');
+         console.log('| get-balance-seller           | ' + block.receipts[22].result  + ' --> Seller gets paid, minus mediator commission');
+         console.log('| get-balance-buyer            | ' + block.receipts[23].result  + ' --> Buyer paid for the item price, minus mediator commission.');
+         console.log('| get-balance-mediator         | ' + block.receipts[24].result  + ' --> Mediator gets paid commission.');;
+         console.log('| get-balance-contract         | ' + block.receipts[25].result  + ' --> Contract principal final asset should be zero.');
+         console.log('+------------------------------+--------------------+');
+         console.log(' ');  /* blank line */
+
+         /* ----------------------------------------------------------------------------- */
+         console.log('Asserting smart contract function results...');
+         /* ----------------------------------------------------------------------------- */
+
+         assertEquals(block.receipts.length, 26);  /* expected contract call results. useful so i don't have to wonder if things get misaligned */
+
+         assertEquals(block.receipts[5].result.expectOk().expectOk(),  'u6100');  /* bill-create   */
+         assertEquals(block.receipts[6].result.expectOk().expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[10].result.expectOk().expectOk(),  'u6210');  /* fund-seller   */
+         assertEquals(block.receipts[11].result.expectOk().expectOk(),  'u6220');  /* fund-buyer    */
+         assertEquals(block.receipts[15].result.expectOk().expectOk(), 'u6221');  /* request-mediator  */       
+
+         /* Initial assets of principals. */
+         asset_seller_initial   = (parseInt((block.receipts[1].result.expectOk()).replace('u','0')));
+         asset_buyer_initial    = (parseInt((block.receipts[2].result.expectOk()).replace('u','0')));
+         let asset_mediator_initial = (parseInt((block.receipts[3].result.expectOk()).replace('u','0')));
+         asset_contract_initial = (parseInt((block.receipts[4].result.expectOk()).replace('u','0')));
+
+         /* Check seller balance. Expect initial balance subtracted with sell price. */
+         asset_seller_expected   = (asset_seller_initial - (parseInt((price.replace('u','0')),10)));      /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
+         asset_seller_transacted = (parseInt((block.receipts[12].result.expectOk()).replace('u','0')));
+         assertEquals(asset_seller_transacted, asset_seller_expected); 
+
+         /* Check buyer balance. Expect initial balance subtracted with 2x buy price. */
+         asset_buyer_expected   = (asset_buyer_initial - ((parseInt((price.replace('u','0')),10)) * 2));  /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
+         asset_buyer_transacted = (parseInt((block.receipts[13].result.expectOk()).replace('u','0')));
+         assertEquals(asset_buyer_transacted, asset_buyer_expected); 
+
+         /* Check principal contract balance. Expect balance as 3x price amount.  Initial amount should be zero. */
+         asset_contract_expected   = (asset_contract_initial + ((parseInt((price.replace('u','0')),10)) * 3)); 
+         asset_contract_transacted = (parseInt((block.receipts[14].result.expectOk()).replace('u','0')));
+         assertEquals(asset_contract_transacted, asset_contract_expected); 
+
+         /* Check seller balance. Expected : initial balance minus half of commission. */
+         commission = ((parseInt((price.replace('u','0')),10)) / 10);
+         asset_seller_expected   = (asset_seller_initial - (commission / 2));  /* Minus half of commission */
+         asset_seller_transacted = (parseInt((block.receipts[22].result.expectOk()).replace('u','0')));
+         assertEquals(asset_seller_transacted, (asset_seller_expected)); 
+
+         /* Check buyer balance. Expect initial balance subtracted with buy price. */
+         asset_buyer_expected   = (asset_buyer_initial - (commission / 2));  /* Minus half of commission  */
+         asset_buyer_transacted = (parseInt((block.receipts[23].result.expectOk()).replace('u','0')));
+         assertEquals(asset_buyer_transacted, (asset_buyer_expected)); 
+
+         /* Check mediator balance. Expected : initial balance plus commission. */
+         asset_mediator_expected   = (asset_mediator_initial + commission);  
+         asset_mediator_transacted = (parseInt((block.receipts[24].result.expectOk()).replace('u','0')));
+         assertEquals(asset_mediator_transacted, (asset_mediator_expected)); 
+
+        /* Check principal contract balance. Expect balance equal to initial amount. Though initial zero. */
+         asset_contract_expected   = asset_contract_initial; 
+         asset_contract_transacted = (parseInt((block.receipts[25].result.expectOk()).replace('u','0')));
+         assertEquals(asset_contract_transacted, asset_contract_expected); 
+
+         console.log(' ');                            /* blank line */
+         console.log('Nice. All good in the hood!');
+         console.log(' ');                            /* blank line */
+
+
+         /*
         -----------------------------------------------------------------------------------------------------------------   
            END OF THE LINE.  PLEASE WATCH THE GAP.
         -----------------------------------------------------------------------------------------------------------------
         */
-
+        console.log('---------------------------------------------------------------------------------------------');
+        console.log('---------------------------------------------------------------------------------------------');
         console.log(' ');                            /* blank line */
         console.log('Good luck Clarinauts!  May Satoshi\'s force be with you.');
         console.log(' ');                            /* blank line */
+        console.log('---------------------------------------------------------------------------------------------');
+        console.log('---------------------------------------------------------------------------------------------');
 
     },
 });

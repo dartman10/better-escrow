@@ -201,7 +201,7 @@
 ;; Seller sends a bill.
 (define-public (bill-create (price-request uint))
   (begin
-    (asserts! (or (is-state-initial) (is-state-buyer-happy)) (err "lol")) ;; check if contract status is eligible for the next round
+    (asserts! (or (is-state-initial) (is-state-buyer-happy) (is-state-mediator-says-good) (is-state-mediator-says-bad) ) (err "lol")) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender)
     (set-price price-request)
     (set-escrow-status state-seller-initiated)
@@ -363,7 +363,7 @@
   (begin
     (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral
     (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission) u2)) tx-sender (get-principal-buyer))))  ;; send collateral back to buyer minus half of mediator commission
-    (try! (as-contract (stx-transfer? u10 tx-sender (get-principal-seller))))  ;; send collateral back to seller minus half of mediator commission
+    (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission) u2)) tx-sender (get-principal-seller))))  ;; send collateral back to seller minus half of mediator commission
     (ok u0)
   )
 )
