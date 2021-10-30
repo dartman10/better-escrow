@@ -90,4 +90,15 @@ sequenceDiagram
     Buyer->>+Seller: buyer puts up collateral
     Seller->>+Buyer: seller delivers product
     Buyer->>+Seller: buyer receives and releases payment
+
+       /*
+        export interface Account {
+         address: string;
+         balance: number;
+         name: string;
+         mnemonic: string;
+       ;;  derivation: string;
+       }
+       */
+
             

@@ -256,11 +256,11 @@ Clarinet.test({
          console.log('Asserting smart contract function results...');
          /* ----------------------------------------------------------------------------- */
 
-         assertEquals(block.receipts[4].result.expectOk().expectOk(),  '[u1, u0, u0]');  /* bill-create   */
-         assertEquals(block.receipts[5].result.expectOk().expectOk(),  '[u1, u1, u0]');  /* bill-accept   */
-         assertEquals(block.receipts[9].result.expectOk().expectOk(),  '[u2, u1, u0]');  /* fund-seller   */
-         assertEquals(block.receipts[10].result.expectOk().expectOk(),  '[u2, u2, u0]');  /* fund-buyer    */
-         assertEquals(block.receipts[14].result.expectOk().expectOk(), '[u2, u2, u1]');  /* request-mediator  */       
+         assertEquals(block.receipts[4].result.expectOk().expectOk(),  'u6100');  /* bill-create   */
+         assertEquals(block.receipts[5].result.expectOk().expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[9].result.expectOk().expectOk(),  'u6210');  /* fund-seller   */
+         assertEquals(block.receipts[10].result.expectOk().expectOk(),  'u6220');  /* fund-buyer    */
+         assertEquals(block.receipts[14].result.expectOk().expectOk(), 'u6221');  /* request-mediator  */       
 
          /* Initial assets of principals. */
          asset_seller_initial   = (parseInt((block.receipts[1].result.expectOk()).replace('u','0')));
@@ -282,23 +282,25 @@ Clarinet.test({
          asset_contract_transacted = (parseInt((block.receipts[13].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
 
-         /* Check seller balance. Expect initial balance added with sell price. */
-         asset_seller_expected   = (asset_seller_initial + (parseInt((price.replace('u','0')),10)));      /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
-         asset_seller_transacted = (parseInt((block.receipts[22].result.expectOk()).replace('u','0')));
-         assertEquals(asset_seller_transacted, asset_seller_expected); 
+         /* Check seller balance. Expected : initial balance + sell price - commission. */
+         let commission = ((parseInt((price.replace('u','0')),10)) / 10);
+         asset_seller_expected   = (asset_seller_initial + (parseInt((price.replace('u','0')),10)) - (commission / 2));  /* Add price minus half of commission */
+         asset_seller_transacted = (parseInt((block.receipts[21].result.expectOk()).replace('u','0')));
+         assertEquals(asset_seller_transacted, (asset_seller_expected)); 
 
          /* Check buyer balance. Expect initial balance subtracted with buy price. */
-         asset_buyer_expected   = (asset_buyer_initial - (parseInt((price.replace('u','0')),10)));  /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
-         asset_buyer_transacted = (parseInt((block.receipts[23].result.expectOk()).replace('u','0')));
-         assertEquals(asset_buyer_transacted, asset_buyer_expected); 
+         asset_buyer_expected   = ((asset_buyer_initial - (parseInt((price.replace('u','0')),10))) - (commission / 2));  /* Subtract price and subtract half of commission  */
+         asset_buyer_transacted = (parseInt((block.receipts[22].result.expectOk()).replace('u','0')));
+         assertEquals(asset_buyer_transacted, (asset_buyer_expected)); 
 
+         /* Check mediator balance. Expected : initial balance plus commission. */
+         let asset_mediator_expected   = (mediator.balance + commission);  
+         let asset_mediator_transacted = (parseInt((block.receipts[23].result.expectOk()).replace('u','0')));
+         assertEquals(asset_mediator_transacted, (asset_mediator_expected)); 
 
-/*
-xxxxx add the mediator here. also need the smart contract to give the Mediator's money back lol
-*/
-         /* Check principal contract balance. Expect balance equal to initial amount. Though initial zero. */
+        /* Check principal contract balance. Expect balance equal to initial amount. Though initial zero. */
          asset_contract_expected   = asset_contract_initial; 
-         asset_contract_transacted = (parseInt((block.receipts[25].result.expectOk()).replace('u','0')));
+         asset_contract_transacted = (parseInt((block.receipts[24].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
 
          console.log(' ');                            /* blank line */
@@ -314,16 +316,6 @@ xxxxx add the mediator here. also need the smart contract to give the Mediator's
         console.log(' ');                            /* blank line */
         console.log('Good luck Clarinauts!  May Satoshi\'s force be with you.');
         console.log(' ');                            /* blank line */
-
-       /*
-        export interface Account {
-         address: string;
-         balance: number;
-         name: string;
-         mnemonic: string;
-       ;;  derivation: string;
-       }
-       */
 
     },
 });
