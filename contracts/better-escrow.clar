@@ -1,45 +1,60 @@
-;; --------------------------------------------
-;; better-escrow : The better escrow service.
-;; --------------------------------------------
+;; -------------------------------------------------------------
+;;    better-escrow : The better escrow service.
+;; -------------------------------------------------------------
 ;;
+;; This escrow smart contract implementation solves some problems:
+;;
+;;   1. Buyer takes advantage by claming item not received or item broken. 
+;;      This is a common problem with Ebay. Ebay simply sides, to seller's dismays,
+;;      with buyers in most cases without investigation.
+;;
+;;   2. Seller posts item with no intention of selling.
+;;      This is a common problem with Craiglist. Many sellers, for some reason,
+;;      are fakes.  These fake sellers agree to meet up but never show up.
+;;
+;;   3. Tedious and transaction delays.
+;;      Real estate transaction is a good  example.
+;;      Normally, a deposit is required when a builder and buyer agrees to transact.
+;;      A real estate attorney will act as escrow, accepts deposit and hold in a bank account.
+;;      Using better-escrow, transaction becomes simpler and less legal paperwork by eliminating a middleman.
+;;      The builder is also incentivized to finish the job on time because he also needs to put up a collateral.  
+;;      Delays in construction is very common and perhaps better-escrow may alleviate some of that.
+;;
+;;   4. International retail mail orders are limited due to buyers tend to avoid sellers from out of the country.
+;;      This maybe minimized if both the seller and the buyer has skin in the game.
+;;      
+;;
+;; Possible solution to stated problems above:
+;;   The main feature of this escrow smart contract is the collateral requirement.  It requires both the buyer
+;;   and the seller to deposit funds into the smart contract.  Buyer deposits funds equal to twice the price of
+;;   the product.  While the seller deposit funds equal to the product price.  This will, optimistically, discourage
+;;   bad actors from participating in a transaction.  This will also incentivize all actors from getting things done
+;;   quicker - seller delivers product faster, buyer provides feedback sooner, mediator mediates without delay.
+;;   
+;;     
 ;; Actors : seller, buyer, mediator.
 ;;   1. Seller - creates a bill to be sent to buyer (creates an instance of escrow smart contract)
 ;;   2. Buyer - accepts the bill charges (in the smart contract)  and sends funds to escrow (into the same smart contract)
-;;   3. Mediator - needed in case of dispute. An actual real attorney, maybe.
+;;   3. Mediator - needed in case of dispute. An actual real estate attorney, for example.
 ;;
-;; The HOWs:
-;;  1. Once a buyer principal is present, the contract instance becomes a multisig contract.
-;;  2. When adding a mediator principal, both the seller and buyer should accept and sign the contract.
-;;  3. tbd
 ;;
-;; Short term tactical solution, due to 3-week hackathon limit:
-;; - Only one active smart contract at any given time.  Meaning, others have to wait until live contract is done.
-;; - Use variables all over the place, but refactor later once everything is working.
-;; - Write separate functions for individual scenarios. Refactor later to remove duplicate codes.
+;; Some future practical features or use-cases:
+;;   1. Escrow agents can utilize smart contract. To minimize paper work and to eliminate wiring funds thru banks.
+;;   2. Mediators can enroll as service providers.  To help build trust in the system.
+;;   3. Make fiat/STX blockchain transaction seamless and user friendly.
 ;;
-;; Future enhancements:
-;; - Use GAIA off-chain storage for persistent data.
-;; - Enabling several instances of active escrow contracts.
-;; - Allow participants to set collateral percentage, perhaps DAO enabled.
-;;
-;; ------------------------------------------
-;; Enough talk.  Let's do this.
-;; ------------------------------------------
-
-
 ;; --------------------
 ;;  Constants
 ;; --------------------
 (define-constant ERR_STX_TRANSFER u0)
 
 ;; Statuses or life stages of an escrow contract.
-(define-constant state-initial           u6000)  ;; Day 0
-(define-constant state-seller-initiated  u6100)  ;; Seller initiated an escrow contract.
-(define-constant state-buyer-accepted    u6110)  ;; Buyer accepted terms of contract.
-(define-constant state-seller-buys-in    u6210)  ;; Seller accepts the buyer and buys in with collateral.
-(define-constant state-buyer-buys-in     u6220)  ;; Buyer buys in with the sum of price and collateral.
-(define-constant state-buyer-is-happy    u6230)  ;; Buyer receives the product in agreed condition and is happy with the transaction.
-
+(define-constant state-initial            u6000)  ;; Day 0
+(define-constant state-seller-initiated   u6100)  ;; Seller initiated an escrow contract.
+(define-constant state-buyer-accepted     u6110)  ;; Buyer accepted terms of contract.
+(define-constant state-seller-buys-in     u6210)  ;; Seller accepts the buyer and buys in with collateral.
+(define-constant state-buyer-buys-in      u6220)  ;; Buyer buys in with the sum of price and collateral.
+(define-constant state-buyer-is-happy     u6230)  ;; Buyer receives the product in agreed condition and is happy with the transaction.
 (define-constant state-mediator-requested u6221)  ;; 
 (define-constant state-mediator-accepted  u6222)  ;; 
 (define-constant state-seller-ok-mediator u6322)  ;; 
@@ -47,19 +62,13 @@
 (define-constant state-mediator-says-good u6333)  ;; 
 (define-constant state-mediator-says-bad  u6334)  ;; 
 
-
-(define-data-var state-of-escrow uint u6000)
-
 ;; --------------------
 ;;  Variables
 ;; --------------------
-(define-data-var principal-seller   principal tx-sender)  ;; initial value set to tx-sender, but will be overwritten later. to avoid "optional", "unwrap" and "some"
-(define-data-var principal-buyer    principal tx-sender)  ;; initial value set to tx-sender, but will be overwritten later.
+(define-data-var state-of-escrow uint u6000)             ;; current status of escrow contract
+(define-data-var principal-seller   principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later. to avoid "optional", "unwrap" and "some"
+(define-data-var principal-buyer    principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
 (define-data-var principal-mediator principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
-
-(define-data-var state-seller   uint u0)  ;; seller status - 0, 1, 2, 3, 4
-(define-data-var state-buyer    uint u0)
-(define-data-var state-mediator uint u0)
 
 (define-data-var price uint u0)
 (define-data-var buyer-funds uint u0)
@@ -161,41 +170,23 @@
   (var-get principal-mediator))
 
 (define-private (set-principal-mediator (principal-value principal))
-  (begin
-    (var-set principal-mediator principal-value)
-  )
+  (var-set principal-mediator principal-value)
 )
 
 (define-read-only (get-balance-mediator)  ;; for Clarinet testing only
-  (ok (stx-get-balance (get-principal-mediator))))
-
-(define-read-only (get-state-seller)
-  (var-get state-seller))
-
-(define-private (set-state-seller (state-value uint ))
-  (var-set state-seller state-value))
-
-(define-read-only (get-state-buyer)
-  (var-get state-buyer))
-
-(define-private (set-state-buyer (state-value uint ))
-  (var-set state-buyer state-value))
-
-(define-read-only (get-state-mediator)
-  (var-get state-mediator))
-
-(define-private (set-state-mediator (state-value uint ))
-  (var-set state-mediator state-value))
+  (ok (stx-get-balance (get-principal-mediator)))
+)
 
 (define-read-only (get-price)
-  (var-get price))
+  (var-get price)
+)
 
 (define-private (set-price (price-value uint))
-  (var-set price price-value))
+  (var-set price price-value)
+)
 
-;; Return status of contract
 (define-public (status-of-contract)
-  (ok (var-get state-of-escrow))
+  (ok (var-get state-of-escrow))     ;; Return status of contract
 )
 
 ;; Seller sends a bill.
@@ -241,9 +232,7 @@
   ) ;; /begin
 )
 
-;; Buyer signals product received and good condition.
-;; Buyer release payment to seller.
-;; Contract releases collaterals too.
+;; Buyer signals product received as acceptable. Releases payment.
 (define-public (fund-release)
   (begin
     (asserts! (is-state-buyer-buys-in) (err u111)) ;; check first 
@@ -262,9 +251,9 @@
   )
 )
 
+;; Transfer funds out from principal contract.
 (define-private (transfer-from-contract)
   (begin
-    ;; as-contract replaces tx-sender inside the closure. get it? lol. easy-peasy.
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-buyer))))  ;; send funds to buyer
     (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send funds to seller 
     (ok "po")
@@ -280,7 +269,7 @@
 ;;   - Both Seller and Buyer has to sign if they like to cancel the mediator request;
 ;;   - The mediator has to sign contract as acceptance of responsibility.
 ;;   - The mediator has to lock funds too equal to the price. To motivate mediator to mediate without delay.
-;; Question: How would I know who requested the Mediator? I need to add a unique status combination.
+;; Question: How would I know who requested the Mediator? I can add a unique status combination, but for now just refer to blockchain history.
 
 (define-public (request-mediator)
   (begin
@@ -329,10 +318,9 @@
   ) ;; /begin
 )
 
-;; Mediator decides. Two possible outcomes (for now):
+;; Mediator decides. Two possible outcomes:
 ;;  1. Mediator agrees with Seller, so contract will be exercised as agreed originally.
-;;  2. Mediator agrees with Buyer, so contract will be nullified and give all money back.
-;; Question is, do we need signoff from either seller or buyer? Or mediator decision is final and immediately deliver the locked funds?
+;;  2. Mediator agrees with Buyer, so contract will be nullified and return all money back.
 
 (define-public (mediator-decides-good)
   (begin
@@ -356,9 +344,9 @@
 
 ;; Mediator decided bad, so do refund.
 ;; Here's the deal:
-;;  - Mediator gets paid commission, 10% of sell price. 5% each from buyer and seller.
-;;  - Seller gets all his money back minus 5% (for mediator commission).
-;;  - Buyer gets all his money back minus 5% (for mediator commission).
+;;  - Mediator gets paid commission, set percentage of sell price. half each from buyer and seller.
+;;  - Seller gets all his money back minus half of mediator commission.
+;;  - Buyer gets all his money back minus half mediator commission.
 (define-private (fund-refund)
   (begin
     (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral
