@@ -49,18 +49,20 @@
 (define-constant ERR_STX_TRANSFER u0)
 
 ;; Statuses or life stages of an escrow contract.
-(define-constant state-initial            u6000)  ;; Day 0
-(define-constant state-seller-initiated   u6100)  ;; Seller initiated an escrow contract.
-(define-constant state-buyer-accepted     u6110)  ;; Buyer accepted terms of contract.
-(define-constant state-seller-buys-in     u6210)  ;; Seller accepts the buyer and buys in with collateral.
-(define-constant state-buyer-buys-in      u6220)  ;; Buyer buys in with the sum of price and collateral.
-(define-constant state-buyer-is-happy     u6230)  ;; Buyer receives the product in agreed condition and is happy with the transaction.
-(define-constant state-mediator-requested u6221)  ;; 
-(define-constant state-mediator-accepted  u6222)  ;; 
-(define-constant state-seller-ok-mediator u6322)  ;; 
-(define-constant state-buyer-ok-mediator  u6332)  ;; 
-(define-constant state-mediator-says-good u6333)  ;; 
-(define-constant state-mediator-says-bad  u6334)  ;; 
+(define-constant STATE-INITIAL            u6000)  ;; Day 0
+(define-constant STATE-SELLER-INITIATED   u6100)  ;; Seller initiated an escrow contract.
+(define-constant STATE-BUYER-ACCEPTED     u6110)  ;; Buyer accepted terms of contract.
+(define-constant STATE-SELLER-BUYS-IN     u6210)  ;; Seller accepts the buyer and buys in with collateral.
+(define-constant STATE-BUYER-BUYS-IN      u6220)  ;; Buyer buys in with the sum of price and collateral.
+(define-constant STATE-BUYER-IS-HAPPY     u6230)  ;; Buyer receives the product in agreed condition and is happy with the transaction.
+(define-constant STATE-MEDIATOR-REQUESTED u6221)  ;; 
+(define-constant STATE-MEDIATOR-ACCEPTED  u6222)  ;; 
+(define-constant STATE-SELLER-OK-MEDIATOR u6322)  ;; 
+(define-constant STATE-BUYER-OK-MEDIATOR  u6332)  ;; 
+(define-constant STATE-MEDIATOR-SAYS-GOOD u6333)  ;; 
+(define-constant STATE-MEDIATOR-SAYS-BAD  u6334)  ;; 
+
+;; Errors
 
 ;; --------------------
 ;;  Variables
@@ -69,49 +71,47 @@
 (define-data-var principal-seller   principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later. to avoid "optional", "unwrap" and "some"
 (define-data-var principal-buyer    principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
 (define-data-var principal-mediator principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
-
-(define-data-var price uint u0)
-(define-data-var buyer-funds uint u0)
+(define-data-var price uint u0)                          ;; item price
 
 ;; private functions
 ;; 
 
 ;; -- Escrow status inquiries --
 (define-read-only (is-state-initial)
-  (is-eq (var-get state-of-escrow) state-initial))
+  (is-eq (var-get state-of-escrow) STATE-INITIAL))
 
 (define-read-only (is-state-buyer-happy)
-  (is-eq (var-get state-of-escrow) state-buyer-is-happy))
+  (is-eq (var-get state-of-escrow) STATE-BUYER-IS-HAPPY))
 
 (define-read-only (is-state-seller-initiated)
-  (is-eq (var-get state-of-escrow) state-seller-initiated))
+  (is-eq (var-get state-of-escrow) STATE-SELLER-INITIATED))
 
 (define-read-only (is-state-buyer-accepted)
-  (is-eq (var-get state-of-escrow) state-buyer-accepted))
+  (is-eq (var-get state-of-escrow) STATE-BUYER-ACCEPTED))
 
 (define-read-only (is-state-seller-buys-in)
-  (is-eq (var-get state-of-escrow) state-seller-buys-in))
+  (is-eq (var-get state-of-escrow) STATE-SELLER-BUYS-IN))
 
 (define-read-only (is-state-buyer-buys-in)
-  (is-eq (var-get state-of-escrow) state-buyer-buys-in))
+  (is-eq (var-get state-of-escrow) STATE-BUYER-BUYS-IN))
 
 (define-read-only (is-state-mediator-requested)
-  (is-eq (var-get state-of-escrow) state-mediator-requested))
+  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-REQUESTED))
 
 (define-read-only (is-state-mediator-accepted)
-  (is-eq (var-get state-of-escrow) state-mediator-accepted))
+  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-ACCEPTED))
 
 (define-read-only (is-state-seller-ok-mediator)
-  (is-eq (var-get state-of-escrow) state-seller-ok-mediator))
+  (is-eq (var-get state-of-escrow) STATE-SELLER-OK-MEDIATOR))
 
 (define-read-only (is-state-buyer-ok-mediator)
-  (is-eq (var-get state-of-escrow) state-buyer-ok-mediator))
+  (is-eq (var-get state-of-escrow) STATE-BUYER-OK-MEDIATOR))
 
 (define-read-only (is-state-mediator-says-good)
-  (is-eq (var-get state-of-escrow) state-mediator-says-good))
+  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-SAYS-GOOD))
 
 (define-read-only (is-state-mediator-says-bad)
-  (is-eq (var-get state-of-escrow) state-mediator-says-bad))
+  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-SAYS-BAD))
 
 
 ;; --- Status setters --
@@ -195,7 +195,7 @@
     (asserts! (or (is-state-initial) (is-state-buyer-happy) (is-state-mediator-says-good) (is-state-mediator-says-bad) ) (err "lol")) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender)
     (set-price price-request)
-    (set-escrow-status state-seller-initiated)
+    (set-escrow-status STATE-SELLER-INITIATED)
     (ok (status-of-contract))
   )
 )
@@ -205,7 +205,7 @@
   (begin
     (asserts! (is-state-seller-initiated) (err "no way"))
     (set-principal-buyer tx-sender)
-    (set-escrow-status state-buyer-accepted)
+    (set-escrow-status STATE-BUYER-ACCEPTED)
     (ok (status-of-contract))
   )
 )
@@ -216,7 +216,7 @@
     (asserts! (is-state-buyer-accepted) (err u2)) ;; check escrow status
     (asserts! (is-eq tx-sender (get-principal-seller)) (err u1))   
     (try! (transfer-to-contract (get-price)))  ;; too many try!s
-    (set-escrow-status state-seller-buys-in)
+    (set-escrow-status STATE-SELLER-BUYS-IN)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -227,7 +227,7 @@
     (asserts! (is-state-seller-buys-in) (err u777)) ;; check contract status
     (asserts! (is-eq tx-sender (get-principal-buyer)) (err u666)) ;; make sure buyer is calling
     (try! (transfer-to-contract (* (get-price) u2)))   ;; Buyer puts in funds twice as much as the seller's funds. Half for collateral, half for price of goods.
-    (set-escrow-status state-buyer-buys-in)
+    (set-escrow-status STATE-BUYER-BUYS-IN)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -238,7 +238,7 @@
     (asserts! (is-state-buyer-buys-in) (err u111)) ;; check first 
     (asserts! (is-eq tx-sender (get-principal-buyer)) (err u112)) ;; Only the buyer can release the funds.
     (try! (transfer-from-contract))     ;; try! returns a uint. try! is needed for intermediate blah blah
-    (set-escrow-status state-buyer-is-happy)
+    (set-escrow-status STATE-BUYER-IS-HAPPY)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -277,7 +277,7 @@
     (asserts! (or (is-eq tx-sender (get-principal-buyer))
                   (is-eq tx-sender (get-principal-seller)))
               (err u121))
-    (set-escrow-status state-mediator-requested)
+    (set-escrow-status STATE-MEDIATOR-REQUESTED)
     (ok (status-of-contract))
   )
 )
@@ -293,7 +293,7 @@
 
     (set-principal-mediator tx-sender)  ;; the mediator is here. welcome sir.
     (try! (transfer-to-contract (get-price)))  ;; mediator buys in
-    (set-escrow-status state-mediator-accepted)
+    (set-escrow-status STATE-MEDIATOR-ACCEPTED)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -303,7 +303,7 @@
   (begin
     (asserts! (is-eq tx-sender (get-principal-seller)) (err u1001))  ;; Check if tx-sender is Seller
     (asserts! (is-state-mediator-accepted) (err u1002)) ;; seller confirms ahead of buyer. refactor later to allow either buyer or seller to go ahead.
-    (set-escrow-status state-seller-ok-mediator)
+    (set-escrow-status STATE-SELLER-OK-MEDIATOR)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -313,7 +313,7 @@
   (begin
     (asserts! (is-eq tx-sender (get-principal-buyer)) (err u1011)) ;; Check if tx-sender is Buyer
     (asserts! (is-state-seller-ok-mediator) (err u1012)) 
-    (set-escrow-status state-buyer-ok-mediator)
+    (set-escrow-status STATE-BUYER-OK-MEDIATOR)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -327,7 +327,7 @@
     (asserts! (is-eq tx-sender (get-principal-mediator)) (err u1021)) ;; Check if tx-sender is Mediator
     (asserts! (is-state-buyer-ok-mediator) (err u1022)) ;; check if state is ready for this
     (try! (fund-disburse))
-    (set-escrow-status state-mediator-says-good)
+    (set-escrow-status STATE-MEDIATOR-SAYS-GOOD)
     (ok (status-of-contract))
   ) ;; /begin
 )
@@ -337,7 +337,7 @@
     (asserts! (is-eq tx-sender (get-principal-mediator)) (err u1031)) ;; Check if tx-sender is Mediator
     (asserts! (is-state-buyer-ok-mediator) (err u1032)) ;; check if state is ready for this
     (try! (fund-refund))
-    (set-escrow-status state-mediator-says-bad)
+    (set-escrow-status STATE-MEDIATOR-SAYS-BAD)
     (ok (status-of-contract))
   ) ;; /begin
 )
