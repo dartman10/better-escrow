@@ -29,19 +29,27 @@
 ;;   and the seller to deposit funds into the smart contract.  Buyer deposits funds equal to twice the price of
 ;;   the product.  While the seller deposit funds equal to the product price.  This will, optimistically, discourage
 ;;   bad actors from participating in a transaction.  This will also incentivize all actors from getting things done
-;;   quicker - seller delivers product faster, buyer provides feedback sooner, mediator mediates without delay.
+;;   quicker - seller delivers product faster, buyer provides confirmation sooner, mediator mediates without delay.
 ;;   
 ;;     
 ;; Actors : seller, buyer, mediator.
 ;;   1. Seller - creates a bill to be sent to buyer (creates an instance of escrow smart contract)
 ;;   2. Buyer - accepts the bill charges (in the smart contract)  and sends funds to escrow (into the same smart contract)
-;;   3. Mediator - needed in case of dispute. An actual real estate attorney, for example.
+;;   3. Mediator - in case of dispute. A real estate attorney, for example . Or find one at https://www.aaamediation.org
+;;
+;;
+;; To Dos:
+;;   1. Allow seller and buyer to cancel the escrow transaction at appropriate statuses.
+;;   2. Add another actor, the Agent.  The person facilitating or assisting the seller and buyer 
+;;      with escrow smart contract app.  This role may be import in early stages of adoption.
 ;;
 ;;
 ;; Some future practical features or use-cases:
 ;;   1. Escrow agents can utilize smart contract. To minimize paper work and to eliminate wiring funds thru banks.
 ;;   2. Mediators can enroll as service providers.  To help build trust in the system.
 ;;   3. Make fiat/STX blockchain transaction seamless and user friendly.
+;;   4. Escrow API for third party integration.
+;;
 ;;
 ;; --------------------
 ;;  Constants
@@ -73,10 +81,16 @@
 (define-constant ERR-WRONG-STATE-7008 u7008)
 (define-constant ERR-WRONG-STATE-7009 u7009)
 (define-constant ERR-WRONG-STATE-7010 u7010)
-(define-constant ERR-WRONG-STATE-7011 u7011)
-(define-constant ERR-WRONG-STATE-7012 u7012)
-(define-constant ERR-WRONG-STATE-7013 u7013)
-(define-constant ERR-WRONG-STATE-7014 u7014)
+
+(define-constant ERR-ACTOR-NOT-ALLOWED-8000 u8000)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8001 u8001)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8002 u8002)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8003 u8003)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8004 u8004)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8005 u8005)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8006 u8006)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8007 u8007)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8008 u8008)
 
 ;; --------------------
 ;;  Variables
@@ -209,10 +223,14 @@
 ;; -- Main process begins here. ---
 ;; --------------------------------
 
-;; Seller sends a bill.
+;; Seller initiates a bill, with specified price.
 (define-public (bill-create (price-request uint))
   (begin
-    (asserts! (or (is-state-initial) (is-state-buyer-happy) (is-state-mediator-says-good) (is-state-mediator-says-bad) ) (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
+    (asserts! (or (is-state-initial) 
+                  (is-state-buyer-happy)
+                  (is-state-mediator-says-good)
+                  (is-state-mediator-says-bad)) 
+              (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender)
     (set-price price-request)
     (set-escrow-status STATE-SELLER-INITIATED)
@@ -230,34 +248,34 @@
   )
 )
 
-;; Seller accepts Buyer and confirm.  Sends fund and locked.
+;; Seller accepts Buyer and confirm.  Sends fund to contract principal.
 (define-public (fund-seller)
   (begin
     (asserts! (is-state-buyer-accepted) (err ERR-WRONG-STATE-7002)) ;; check escrow status
-    (asserts! (is-eq tx-sender (get-principal-seller)) (err u1))   
-    (try! (transfer-to-contract (get-price)))  ;; too many try!s
+    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8000))   
+    (try! (transfer-to-contract (get-price))) 
     (set-escrow-status STATE-SELLER-BUYS-IN)
     (ok (status-of-contract))
   ) ;; /begin
 )
 
-;; Buyer reviews seller fund and send own fund. Contract now locked and loaded.
+;; Buyer reviews seller fund and sends own fund. Contract becomes locked and loaded.
 (define-public (fund-buyer)
   (begin
     (asserts! (is-state-seller-buys-in) (err ERR-WRONG-STATE-7003)) ;; check contract status
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err u666)) ;; make sure buyer is calling
-    (try! (transfer-to-contract (* (get-price) u2)))   ;; Buyer puts in funds twice as much as the seller's funds. Half for collateral, half for price of goods.
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8001)) ;; make sure buyer is calling
+    (try! (transfer-to-contract (* (get-price) u2)))   ;; Buyer sends twice as much as the seller's funds. Half for collateral, half for price of goods.
     (set-escrow-status STATE-BUYER-BUYS-IN)
     (ok (status-of-contract))
   ) ;; /begin
 )
 
-;; Buyer signals product received as acceptable. Releases payment.
+;; Buyer confirms product received and acceptable. Releases payment.
 (define-public (fund-release)
   (begin
     (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7004)) ;; check contract status first
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err u112)) ;; Only the buyer can release the funds.
-    (try! (transfer-from-contract))     ;; try! returns a uint. try! is needed for intermediate blah blah
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8002)) ;; Only the buyer can release the funds.
+    (try! (transfer-from-contract))   
     (set-escrow-status STATE-BUYER-IS-HAPPY)
     (ok (status-of-contract))
   ) ;; /begin
@@ -295,7 +313,7 @@
   (begin
     (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7005))
     (asserts! (or (is-eq tx-sender (get-principal-buyer)) (is-eq tx-sender (get-principal-seller)))  ;; cannot be the buyer nor the seller
-              (err u121))
+              (err ERR-ACTOR-NOT-ALLOWED-8007))
     (set-escrow-status STATE-MEDIATOR-REQUESTED)
     (ok (status-of-contract))
   )
@@ -304,13 +322,12 @@
 ;; Mediator accepts responsibility and buys in at set price. 
 (define-public (mediate-accept)
   (begin
-    (asserts! (is-state-mediator-requested) (err u141))
+    (asserts! (is-state-mediator-requested) (err ERR-WRONG-STATE-7006))
     (asserts! (not  (or (is-eq tx-sender (get-principal-buyer))
                         (is-eq tx-sender (get-principal-seller))))
-              (err u131)  ;; error - neither buyer nor seller can be a mediator
+              (err ERR-ACTOR-NOT-ALLOWED-8008)  ;; error - neither buyer nor seller can be a mediator
     ) ;; /asserts!
-
-    (set-principal-mediator tx-sender)  ;; the mediator is here. welcome sir.
+    (set-principal-mediator tx-sender)         ;; the mediator is here. welcome sir.
     (try! (transfer-to-contract (get-price)))  ;; mediator buys in
     (set-escrow-status STATE-MEDIATOR-ACCEPTED)
     (ok (status-of-contract))
@@ -320,8 +337,8 @@
 ;; Seller vets Mediator then confirms
 (define-public (mediator-confirmation-seller)
   (begin
-    (asserts! (is-eq tx-sender (get-principal-seller)) (err u1001))  ;; Check if tx-sender is Seller
-    (asserts! (is-state-mediator-accepted) (err u1002)) ;; seller confirms ahead of buyer. refactor later to allow either buyer or seller to go ahead.
+    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8003))  ;; Check if tx-sender is Seller
+    (asserts! (is-state-mediator-accepted) (err ERR-WRONG-STATE-7007)) ;; seller confirms ahead of buyer. refactor later to allow either buyer or seller to go ahead.
     (set-escrow-status STATE-SELLER-OK-MEDIATOR)
     (ok (status-of-contract))
   ) ;; /begin
@@ -330,8 +347,8 @@
 ;; Buyer vets Mediator then confirms
 (define-public (mediator-confirmation-buyer)
   (begin
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err u1011)) ;; Check if tx-sender is Buyer
-    (asserts! (is-state-seller-ok-mediator) (err u1012)) 
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8004)) ;; Check if tx-sender is Buyer
+    (asserts! (is-state-seller-ok-mediator) (err ERR-WRONG-STATE-7008)) 
     (set-escrow-status STATE-BUYER-OK-MEDIATOR)
     (ok (status-of-contract))
   ) ;; /begin
@@ -343,8 +360,8 @@
 
 (define-public (mediator-decides-good)
   (begin
-    (asserts! (is-eq tx-sender (get-principal-mediator)) (err u1021)) ;; Check if tx-sender is Mediator
-    (asserts! (is-state-buyer-ok-mediator) (err u1022)) ;; check if state is ready for this
+    (asserts! (is-eq tx-sender (get-principal-mediator)) (err ERR-ACTOR-NOT-ALLOWED-8005)) ;; Check if tx-sender is Mediator
+    (asserts! (is-state-buyer-ok-mediator) (err ERR-WRONG-STATE-7009)) ;; check if state is ready for this
     (try! (fund-disburse))
     (set-escrow-status STATE-MEDIATOR-SAYS-GOOD)
     (ok (status-of-contract))
@@ -353,8 +370,8 @@
 
 (define-public (mediator-decides-bad)
   (begin
-    (asserts! (is-eq tx-sender (get-principal-mediator)) (err u1031)) ;; Check if tx-sender is Mediator
-    (asserts! (is-state-buyer-ok-mediator) (err u1032)) ;; check if state is ready for this
+    (asserts! (is-eq tx-sender (get-principal-mediator)) (err ERR-ACTOR-NOT-ALLOWED-8006)) ;; Check if tx-sender is Mediator
+    (asserts! (is-state-buyer-ok-mediator) (err ERR-WRONG-STATE-7010)) ;; check if state is ready for this
     (try! (fund-refund))
     (set-escrow-status STATE-MEDIATOR-SAYS-BAD)
     (ok (status-of-contract))
@@ -376,7 +393,7 @@
 )
 
 (define-private (get-mediator-commission)
-  (/ (get-price) u10)  ;; mediator commission is hardcoded at 10%. refactor later to allow buyer/seller to set dynamically.
+  (/ (get-price) u10)  ;; mediator commission is hardcoded at 10%. improve later to allow buyer/seller to set dynamically.
 )
 
 ;; Mediator decided good, so disburse funds appropriately.
