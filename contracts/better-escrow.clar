@@ -46,7 +46,6 @@
 ;; --------------------
 ;;  Constants
 ;; --------------------
-(define-constant ERR_STX_TRANSFER u0)
 
 ;; Statuses or life stages of an escrow contract.
 (define-constant STATE-INITIAL            u6000)  ;; Day 0
@@ -63,6 +62,21 @@
 (define-constant STATE-MEDIATOR-SAYS-BAD  u6334)  ;; 
 
 ;; Errors
+(define-constant ERR-WRONG-STATE-7000 u7000)
+(define-constant ERR-WRONG-STATE-7001 u7001)
+(define-constant ERR-WRONG-STATE-7002 u7002)
+(define-constant ERR-WRONG-STATE-7003 u7003)
+(define-constant ERR-WRONG-STATE-7004 u7004)
+(define-constant ERR-WRONG-STATE-7005 u7005)
+(define-constant ERR-WRONG-STATE-7006 u7006)
+(define-constant ERR-WRONG-STATE-7007 u7007)
+(define-constant ERR-WRONG-STATE-7008 u7008)
+(define-constant ERR-WRONG-STATE-7009 u7009)
+(define-constant ERR-WRONG-STATE-7010 u7010)
+(define-constant ERR-WRONG-STATE-7011 u7011)
+(define-constant ERR-WRONG-STATE-7012 u7012)
+(define-constant ERR-WRONG-STATE-7013 u7013)
+(define-constant ERR-WRONG-STATE-7014 u7014)
 
 ;; --------------------
 ;;  Variables
@@ -73,66 +87,25 @@
 (define-data-var principal-mediator principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
 (define-data-var price uint u0)                          ;; item price
 
-;; private functions
-;; 
 
-;; -- Escrow status inquiries --
-(define-read-only (is-state-initial)
-  (is-eq (var-get state-of-escrow) STATE-INITIAL))
+;; ------------------
+;; --- FUNCTIONS ----
+;; ------------------
 
-(define-read-only (is-state-buyer-happy)
-  (is-eq (var-get state-of-escrow) STATE-BUYER-IS-HAPPY))
-
-(define-read-only (is-state-seller-initiated)
-  (is-eq (var-get state-of-escrow) STATE-SELLER-INITIATED))
-
-(define-read-only (is-state-buyer-accepted)
-  (is-eq (var-get state-of-escrow) STATE-BUYER-ACCEPTED))
-
-(define-read-only (is-state-seller-buys-in)
-  (is-eq (var-get state-of-escrow) STATE-SELLER-BUYS-IN))
-
-(define-read-only (is-state-buyer-buys-in)
-  (is-eq (var-get state-of-escrow) STATE-BUYER-BUYS-IN))
-
-(define-read-only (is-state-mediator-requested)
-  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-REQUESTED))
-
-(define-read-only (is-state-mediator-accepted)
-  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-ACCEPTED))
-
-(define-read-only (is-state-seller-ok-mediator)
-  (is-eq (var-get state-of-escrow) STATE-SELLER-OK-MEDIATOR))
-
-(define-read-only (is-state-buyer-ok-mediator)
-  (is-eq (var-get state-of-escrow) STATE-BUYER-OK-MEDIATOR))
-
-(define-read-only (is-state-mediator-says-good)
-  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-SAYS-GOOD))
-
-(define-read-only (is-state-mediator-says-bad)
-  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-SAYS-BAD))
-
-
-;; --- Status setters --
-(define-private (set-escrow-status (state-new uint))
-  (var-set state-of-escrow state-new)
-)
-
-;; echo function - to check if contract is reachable
+;; echo function - to check if contract is reachable. make this part of trait.
 (define-read-only (echo (shout-out (string-ascii 100)))
    (ok shout-out))
 
-;; help function - return helpful tips and usage
-;; make this part of trait
+;; help function - return helpful tips and usage. make this part of trait.
 (define-read-only (help)
    (ok "help is on the way"))
 
-;; about function - desribe this contract
-;; make this part of trait
+;; about function - desribe this contract. make this part of trait.
 (define-read-only (about)
-   (ok "Just Another Escrow Application"))
+   (ok "Just Another Escrow Application")
+)
 
+;;  --- Setters and Getters ---
 (define-read-only (get-tx-sender)
   (ok tx-sender))
 
@@ -189,10 +162,57 @@
   (ok (var-get state-of-escrow))     ;; Return status of contract
 )
 
+(define-private (set-escrow-status (state-new uint))
+  (var-set state-of-escrow state-new)  ;; update status of contract
+)
+
+
+;; -- Escrow status inquiries --
+(define-read-only (is-state-initial)
+  (is-eq (var-get state-of-escrow) STATE-INITIAL))
+
+(define-read-only (is-state-buyer-happy)
+  (is-eq (var-get state-of-escrow) STATE-BUYER-IS-HAPPY))
+
+(define-read-only (is-state-seller-initiated)
+  (is-eq (var-get state-of-escrow) STATE-SELLER-INITIATED))
+
+(define-read-only (is-state-buyer-accepted)
+  (is-eq (var-get state-of-escrow) STATE-BUYER-ACCEPTED))
+
+(define-read-only (is-state-seller-buys-in)
+  (is-eq (var-get state-of-escrow) STATE-SELLER-BUYS-IN))
+
+(define-read-only (is-state-buyer-buys-in)
+  (is-eq (var-get state-of-escrow) STATE-BUYER-BUYS-IN))
+
+(define-read-only (is-state-mediator-requested)
+  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-REQUESTED))
+
+(define-read-only (is-state-mediator-accepted)
+  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-ACCEPTED))
+
+(define-read-only (is-state-seller-ok-mediator)
+  (is-eq (var-get state-of-escrow) STATE-SELLER-OK-MEDIATOR))
+
+(define-read-only (is-state-buyer-ok-mediator)
+  (is-eq (var-get state-of-escrow) STATE-BUYER-OK-MEDIATOR))
+
+(define-read-only (is-state-mediator-says-good)
+  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-SAYS-GOOD))
+
+(define-read-only (is-state-mediator-says-bad)
+  (is-eq (var-get state-of-escrow) STATE-MEDIATOR-SAYS-BAD))
+
+
+;; --------------------------------
+;; -- Main process begins here. ---
+;; --------------------------------
+
 ;; Seller sends a bill.
 (define-public (bill-create (price-request uint))
   (begin
-    (asserts! (or (is-state-initial) (is-state-buyer-happy) (is-state-mediator-says-good) (is-state-mediator-says-bad) ) (err "lol")) ;; check if contract status is eligible for the next round
+    (asserts! (or (is-state-initial) (is-state-buyer-happy) (is-state-mediator-says-good) (is-state-mediator-says-bad) ) (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender)
     (set-price price-request)
     (set-escrow-status STATE-SELLER-INITIATED)
@@ -203,7 +223,7 @@
 ;; Buyer accepts terms of the bill, no sending of funds yet.
 (define-public (bill-accept)
   (begin
-    (asserts! (is-state-seller-initiated) (err "no way"))
+    (asserts! (is-state-seller-initiated) (err ERR-WRONG-STATE-7001))  ;; check escrow status
     (set-principal-buyer tx-sender)
     (set-escrow-status STATE-BUYER-ACCEPTED)
     (ok (status-of-contract))
@@ -213,7 +233,7 @@
 ;; Seller accepts Buyer and confirm.  Sends fund and locked.
 (define-public (fund-seller)
   (begin
-    (asserts! (is-state-buyer-accepted) (err u2)) ;; check escrow status
+    (asserts! (is-state-buyer-accepted) (err ERR-WRONG-STATE-7002)) ;; check escrow status
     (asserts! (is-eq tx-sender (get-principal-seller)) (err u1))   
     (try! (transfer-to-contract (get-price)))  ;; too many try!s
     (set-escrow-status STATE-SELLER-BUYS-IN)
@@ -224,7 +244,7 @@
 ;; Buyer reviews seller fund and send own fund. Contract now locked and loaded.
 (define-public (fund-buyer)
   (begin
-    (asserts! (is-state-seller-buys-in) (err u777)) ;; check contract status
+    (asserts! (is-state-seller-buys-in) (err ERR-WRONG-STATE-7003)) ;; check contract status
     (asserts! (is-eq tx-sender (get-principal-buyer)) (err u666)) ;; make sure buyer is calling
     (try! (transfer-to-contract (* (get-price) u2)))   ;; Buyer puts in funds twice as much as the seller's funds. Half for collateral, half for price of goods.
     (set-escrow-status STATE-BUYER-BUYS-IN)
@@ -235,7 +255,7 @@
 ;; Buyer signals product received as acceptable. Releases payment.
 (define-public (fund-release)
   (begin
-    (asserts! (is-state-buyer-buys-in) (err u111)) ;; check first 
+    (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7004)) ;; check contract status first
     (asserts! (is-eq tx-sender (get-principal-buyer)) (err u112)) ;; Only the buyer can release the funds.
     (try! (transfer-from-contract))     ;; try! returns a uint. try! is needed for intermediate blah blah
     (set-escrow-status STATE-BUYER-IS-HAPPY)
@@ -256,7 +276,7 @@
   (begin
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-buyer))))  ;; send funds to buyer
     (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send funds to seller 
-    (ok "po")
+    (ok u0)
   )
 )
 
@@ -273,9 +293,8 @@
 
 (define-public (request-mediator)
   (begin
-    (asserts! (is-state-buyer-buys-in) (err u121))
-    (asserts! (or (is-eq tx-sender (get-principal-buyer))
-                  (is-eq tx-sender (get-principal-seller)))
+    (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7005))
+    (asserts! (or (is-eq tx-sender (get-principal-buyer)) (is-eq tx-sender (get-principal-seller)))  ;; cannot be the buyer nor the seller
               (err u121))
     (set-escrow-status STATE-MEDIATOR-REQUESTED)
     (ok (status-of-contract))
