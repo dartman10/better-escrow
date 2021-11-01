@@ -243,8 +243,7 @@
 ;; Seller initiates a bill, with specified price.
 (define-public (bill-create (price-request uint))
   (begin
-    (asserts! (is-state-ready-for-next-round) 
-              (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
+    (asserts! (is-state-ready-for-next-round) (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender)
     (set-price price-request)
     (set-escrow-status STATE-SELLER-INITIATED)
