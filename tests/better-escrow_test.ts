@@ -88,11 +88,11 @@ Clarinet.test({
         
 
          assertEquals(block.receipts.length, 15);  /* expected contract call results */
-         assertEquals(block.receipts[1].result.expectOk().expectOk(),  'u6100');  /* bill-create   */
-         assertEquals(block.receipts[2].result.expectOk().expectOk(),  'u6110');  /* bill-accept   */
-         assertEquals(block.receipts[6].result.expectOk().expectOk(),  'u6210');  /* fund-seller   */
-         assertEquals(block.receipts[7].result.expectOk().expectOk(),  'u6220');  /* fund-buyer    */
-         assertEquals(block.receipts[11].result.expectOk().expectOk(), 'u6230');  /* fund-release  */
+         assertEquals(block.receipts[1].result.expectOk(),  'u6100');  /* bill-create   */
+         assertEquals(block.receipts[2].result.expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[6].result.expectOk(),  'u6210');  /* fund-seller   */
+         assertEquals(block.receipts[7].result.expectOk(),  'u6220');  /* fund-buyer    */
+         assertEquals(block.receipts[11].result.expectOk(), 'u6230');  /* fund-release  */
        
          console.log('| Checking results of : Seller initiates a contract; Buyer accepts contract; Seller adds fund; Buyer adds fund.');          
 
@@ -215,11 +215,11 @@ Clarinet.test({
          console.log('| Asserting smart contract function results...');
  
          assertEquals(block.receipts.length, 25);  /* expected contract call results */
-         assertEquals(block.receipts[4].result.expectOk().expectOk(),  'u6100');  /* bill-create   */
-         assertEquals(block.receipts[5].result.expectOk().expectOk(),  'u6110');  /* bill-accept   */
-         assertEquals(block.receipts[9].result.expectOk().expectOk(),  'u6210');  /* fund-seller   */
-         assertEquals(block.receipts[10].result.expectOk().expectOk(),  'u6220');  /* fund-buyer    */
-         assertEquals(block.receipts[14].result.expectOk().expectOk(), 'u6221');  /* request-mediator  */       
+         assertEquals(block.receipts[4].result.expectOk(),  'u6100');  /* bill-create   */
+         assertEquals(block.receipts[5].result.expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[9].result.expectOk(),  'u6210');  /* fund-seller   */
+         assertEquals(block.receipts[10].result.expectOk(),  'u6220');  /* fund-buyer    */
+         assertEquals(block.receipts[14].result.expectOk(), 'u6221');  /* request-mediator  */       
 
          /* Initial assets of principals. */
          asset_seller_initial   = (parseInt((block.receipts[1].result.expectOk()).replace('u','0')));
@@ -345,11 +345,11 @@ Clarinet.test({
 
          assertEquals(block.receipts.length, 26);  /* expected contract call results. useful so i don't have to wonder if things get misaligned */
 
-         assertEquals(block.receipts[5].result.expectOk().expectOk(),  'u6100');  /* bill-create   */
-         assertEquals(block.receipts[6].result.expectOk().expectOk(),  'u6110');  /* bill-accept   */
-         assertEquals(block.receipts[10].result.expectOk().expectOk(),  'u6210');  /* fund-seller   */
-         assertEquals(block.receipts[11].result.expectOk().expectOk(),  'u6220');  /* fund-buyer    */
-         assertEquals(block.receipts[15].result.expectOk().expectOk(), 'u6221');  /* request-mediator  */       
+         assertEquals(block.receipts[5].result.expectOk(),  'u6100');  /* bill-create   */
+         assertEquals(block.receipts[6].result.expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[10].result.expectOk(),  'u6210');  /* fund-seller   */
+         assertEquals(block.receipts[11].result.expectOk(),  'u6220');  /* fund-buyer    */
+         assertEquals(block.receipts[15].result.expectOk(), 'u6221');  /* request-mediator  */       
 
          /* Initial assets of principals. */
          asset_seller_initial   = (parseInt((block.receipts[1].result.expectOk()).replace('u','0')));

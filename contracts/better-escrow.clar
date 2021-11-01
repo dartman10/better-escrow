@@ -177,10 +177,6 @@
   (var-set price price-value)
 )
 
-;; (define-public (status-of-contract)  ;; deprecated. use (get-status-of-escrow)
-;;   (ok (var-get state-of-escrow))     ;; Return status of contract
-;; )
-
 (define-read-only (get-escrow-status)  ;; 
   (var-get escrow-status)     ;; Return status of escrow contract
 )
@@ -238,7 +234,6 @@
   )
 )
   
-
 
 ;; --------------------------------
 ;; -- MAIN PROCESS BEGINS HERE ---
