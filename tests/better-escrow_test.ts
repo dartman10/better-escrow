@@ -14,40 +14,35 @@ Clarinet.test({
         /* Set the sell price. */
         let price     = 'u1000';
 
-        /*
-        ------------------------------------------------------------ 
-           Test the basic functions.
-        ------------------------------------------------------------- 
-        */
         console.log(' ');
-        console.log('----------------------------');
-        console.log('-- Test basic functions.  --');          
-        console.log('----------------------------');            
         console.log(' ');
+        console.log('+------------------------------------------------------------------------------------------------+');
+        console.log('|                                  TEST BASIC FUNCTIONS                                          |');
+        console.log('+------------------------------------------------------------------------------------------------+');
 
         let block = chain.mineBlock([
            Tx.contractCall('better-escrow', 'about', [], seller.address),
            Tx.contractCall('better-escrow', 'status-of-contract', [], seller.address),
         ]);
 
-        console.log('about              = ' + block.receipts[0].result);
-        console.log('status-of-contract = ' + block.receipts[1].result);
+        console.log('| about              = ' + block.receipts[0].result);
+        console.log('| status-of-contract = ' + block.receipts[1].result);
 
         assertEquals(block.receipts.length, 2);
         assertEquals(block.receipts[0].result.expectOk(), '"Just Another Escrow Application"');
         assertEquals(block.receipts[1].result.expectOk(), 'u6000');
+        console.log('+------------------------------------------------------------------------------------------------+');
 
-        /*
-        ------------------------------------------------------------ 
-           Simulate a smooth escrow transaction.                      
-        ------------------------------------------------------------- 
-        */
+
 
         console.log(' ');
-        console.log('-------------------------------------------');
-        console.log('-- Simulate a smooth escrow transaction. --');          
-        console.log('-------------------------------------------');            
         console.log(' ');
+        console.log(' ');
+        console.log('+------------------------------------------------------------------------------------------------+');
+        console.log('|                                  TEST SCENARIO #1                                              |');
+        console.log('+------------------------------------------------------------------------------------------------+');
+        console.log('| Simulate a smooth escrow transaction.');  
+        console.log('+------------------------------------------------------------------------------------------------+');
 
         block = chain.mineBlock([
             Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
@@ -67,16 +62,13 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),  /* Get updated asset. */
          ]);
 
-         console.log('seller.address = ' + seller.address);
-         console.log('buyer.address  = ' + buyer.address);
-         console.log('price          = ' + price);
-
-         console.log('result count   = ' + block.receipts.length);
-
-         console.log('');
-         console.log('+------------------------------+----------------------------------------------------------------+');
-         console.log('|      Function Name           |   Return value                                                 |');
-         console.log('+------------------------------+----------------------------------------------------------------+');
+         console.log('| seller.address = ' + seller.address);
+         console.log('| buyer.address  = ' + buyer.address);
+         console.log('| price          = ' + price);
+         console.log('| result count   = ' + block.receipts.length);
+         console.log('+------------------------------+-----------------------------------------------------------------+');
+         console.log('|      Function Name           |   Return value                                                  |');
+         console.log('+------------------------------+-----------------------------------------------------------------+');
          console.log('| get-principal-contract       | ' + block.receipts[0].result );
          console.log('| bill-create                  | ' + block.receipts[1].result );
          console.log('| bill-accept                  | ' + block.receipts[2].result );
@@ -92,7 +84,8 @@ Clarinet.test({
          console.log('| get-balance-seller           | ' + block.receipts[12].result );
          console.log('| get-balance-buyer            | ' + block.receipts[13].result );
          console.log('| get-balance-contract         | ' + block.receipts[14].result );
-         console.log('+------------------------------+----------------------------------------------------------------+');
+         console.log('+------------------------------+-----------------------------------------------------------------+');
+        
 
          assertEquals(block.receipts.length, 15);  /* expected contract call results */
          assertEquals(block.receipts[1].result.expectOk().expectOk(),  'u6100');  /* bill-create   */
@@ -101,9 +94,7 @@ Clarinet.test({
          assertEquals(block.receipts[7].result.expectOk().expectOk(),  'u6220');  /* fund-buyer    */
          assertEquals(block.receipts[11].result.expectOk().expectOk(), 'u6230');  /* fund-release  */
        
-         console.log(' ');  /* blank line */
-
-         console.log('Checking results of : Seller initiates a contract; Buyer accepts contract; Seller adds fund; Buyer adds fund.');          
+         console.log('| Checking results of : Seller initiates a contract; Buyer accepts contract; Seller adds fund; Buyer adds fund.');          
 
          /* Initial assets of principals. */
          let asset_seller_initial   = (parseInt((block.receipts[3].result.expectOk()).replace('u','0')));
@@ -125,9 +116,7 @@ Clarinet.test({
          let asset_contract_transacted = (parseInt((block.receipts[10].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
 
-         console.log(' ');  /* blank line */
-
-         console.log('Checking results of : Buyer releases funds from the contract.');          
+         console.log('| Checking results of : Buyer releases funds from the contract.');          
 
          /* Check seller balance. Expect initial balance added with sell price. */
          asset_seller_expected   = (asset_seller_initial + (parseInt((price.replace('u','0')),10)));      /* Subtract price from initial principal asset. Need to convert string 'uint' into javascript int.  */
@@ -144,22 +133,19 @@ Clarinet.test({
          asset_contract_transacted = (parseInt((block.receipts[14].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
          
-         console.log('Nice. All good in the hood!');
-    
-        /*
-        -----------------------------------------------------------------------------------------------------------------   
-           SIMULATE AN ESCROW TRANSACTION WITH A MEDIATOR INVOLVED.
-           In this case, mediator favors the escrow contract as originally agreed by both parties.
-        -----------------------------------------------------------------------------------------------------------------
-        */
+         console.log('| Nice. All good in the hood!');
+         console.log('+------------------------------------------------------------------------------------------------+');
+        
 
+        console.log(' '); 
         console.log(' ');
-        console.log('+-------------------------------------------------------------------------------------------+');
-        console.log('|                                  TEST SCENARIO #3                                         |');
-        console.log('+-------------------------------------------------------------------------------------------+');
-        console.log('| Simulate an escrow transaction with a Mediator.                                           |');
-        console.log('| In this case, mediator favors the escrow contract as originally agreed by both parties.   |');
-        console.log('+-------------------------------------------------------------------------------------------+');
+        console.log(' ');
+        console.log('+------------------------------------------------------------------------------------------------+');
+        console.log('|                                  TEST SCENARIO #2                                              |');
+        console.log('+------------------------------------------------------------------------------------------------+');
+        console.log('| Simulate an escrow transaction with a Mediator.                                                |');
+        console.log('| In this case, mediator favors the escrow contract as originally agreed by both parties.        |');
+        console.log('+------------------------------------------------------------------------------------------------+');
         
         block = chain.mineBlock([
             Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
@@ -189,16 +175,15 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
          ]);
 
-         console.log('seller.address   = ' + seller.address);
-         console.log('buyer.address    = ' + buyer.address);
-         console.log('mediator.address = ' + mediator.address);
-         console.log('price            = ' + price);
-         console.log('result count     = ' + block.receipts.length);
+         console.log('| seller.address   = ' + seller.address);
+         console.log('| buyer.address    = ' + buyer.address);
+         console.log('| mediator.address = ' + mediator.address);
+         console.log('| price            = ' + price);
+         console.log('| result count     = ' + block.receipts.length);
 
-         console.log('');
-         console.log('+------------------------------+----------------------------------------------------------------+');
-         console.log('|      Function Name           |   Return value                                                 |');
-         console.log('+------------------------------+----------------------------------------------------------------+');
+         console.log('+------------------------------+-----------------------------------------------------------------+');
+         console.log('|      Function Name           |   Return value                                                  |');
+         console.log('+------------------------------+-----------------------------------------------------------------+');
          console.log('| get-principal-contract       | ' + block.receipts[0].result);
          console.log('| get-balance-seller           | ' + block.receipts[1].result + ' --> Seller initial balance.');
          console.log('| get-balance-buyer            | ' + block.receipts[2].result + ' --> Buyer initial balance.');
@@ -225,11 +210,10 @@ Clarinet.test({
          console.log('| get-balance-buyer            | ' + block.receipts[22].result  + ' --> Buyer paid for the item price, minus mediator commission.');
          console.log('| get-balance-mediator         | ' + block.receipts[23].result  + ' --> Mediator gets paid commission.');;
          console.log('| get-balance-contract         | ' + block.receipts[24].result  + ' --> Contract principal final asset should be zero.');
-         console.log('+------------------------------+----------------------------------------------------------------+');
-         console.log(' ');  /* blank line */
-         /* ----------------------------------------------------------------------------- */
-         console.log('Asserting smart contract function results...');
-         /* ----------------------------------------------------------------------------- */
+         console.log('+------------------------------+-----------------------------------------------------------------+');
+        
+         console.log('| Asserting smart contract function results...');
+ 
          assertEquals(block.receipts.length, 25);  /* expected contract call results */
          assertEquals(block.receipts[4].result.expectOk().expectOk(),  'u6100');  /* bill-create   */
          assertEquals(block.receipts[5].result.expectOk().expectOk(),  'u6110');  /* bill-accept   */
@@ -278,18 +262,18 @@ Clarinet.test({
          asset_contract_transacted = (parseInt((block.receipts[24].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
 
-         console.log(' ');                            /* blank line */
-         console.log('Nice. All good in the hood!');
-         console.log(' ');                            /* blank line */
-
-
+         console.log('| Nice. All good in the hood!');
+         console.log('+------------------------------------------------------------------------------------------------+');
+        
+         console.log(' ');                           
          console.log(' ');
-         console.log('+-------------------------------------------------------------------------------------------+');
-         console.log('|                                  TEST SCENARIO #4                                         |');
-         console.log('+-------------------------------------------------------------------------------------------+');
-         console.log('| Simulate an escrow transaction with a Mediator.                                           |');
-         console.log('| In this case, mediator cancels the escrow contract.                                       |');
-         console.log('+-------------------------------------------------------------------------------------------+');
+         console.log(' ');
+         console.log('+------------------------------------------------------------------------------------------------+');
+         console.log('|                                  TEST SCENARIO #3                                              |');
+         console.log('+------------------------------------------------------------------------------------------------+');        
+         console.log('| Simulate an escrow transaction with a Mediator.                                                |');
+         console.log('| In this case, mediator cancels the escrow contract.                                            |');
+         console.log('+------------------------------------------------------------------------------------------------+');
 
          block = chain.mineBlock([
             Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
@@ -321,13 +305,11 @@ Clarinet.test({
 
          ]);
 
-         console.log('seller.address   = ' + seller.address);
-         console.log('buyer.address    = ' + buyer.address);
-         console.log('mediator.address = ' + mediator.address);
-         console.log('price            = ' + price);
-         console.log('result count     = ' + block.receipts.length);
-
-         console.log('');
+         console.log('| seller.address   = ' + seller.address);
+         console.log('| buyer.address    = ' + buyer.address);
+         console.log('| mediator.address = ' + mediator.address);
+         console.log('| price            = ' + price);
+         console.log('| result count     = ' + block.receipts.length);
          console.log('+------------------------------+----------------------------------------------------------------+');
          console.log('|      Function Name           |   Return value                                                 |');
          console.log('+------------------------------+----------------------------------------------------------------+');
@@ -357,12 +339,9 @@ Clarinet.test({
          console.log('| get-balance-buyer            | ' + block.receipts[23].result  + ' -> Buyer pays price and commission.');
          console.log('| get-balance-mediator         | ' + block.receipts[24].result  + ' -> Mediator gets paid commission.');;
          console.log('| get-balance-contract         | ' + block.receipts[25].result  + ' -> Contract asset should be zero.');
-         console.log('+------------------------------+----------------------------------------------------------------+');
-         console.log(' ');  /* blank line */
-
-         /* ----------------------------------------------------------------------------- */
-         console.log('Asserting smart contract function results...');
-         /* ----------------------------------------------------------------------------- */
+         console.log('+------------------------------+-----------------------------------------------------------------+');
+        
+         console.log('| Asserting smart contract function results...');
 
          assertEquals(block.receipts.length, 26);  /* expected contract call results. useful so i don't have to wonder if things get misaligned */
 
@@ -414,23 +393,23 @@ Clarinet.test({
          asset_contract_transacted = (parseInt((block.receipts[25].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
 
-         console.log(' ');                            /* blank line */
-         console.log('Nice. All good in the hood!');
-         console.log(' ');                            /* blank line */
+         console.log('| Nice. All good in the hood!');
+         console.log('+------------------------------+-----------------------------------------------------------------+');
+        
+          /*
+         -----------------------------------------------------------------------------------------------------------------   
+            END OF THE LINE.  PLEASE WATCH THE GAP.
+         -----------------------------------------------------------------------------------------------------------------
+         */
 
-
-         /*
-        -----------------------------------------------------------------------------------------------------------------   
-           END OF THE LINE.  PLEASE WATCH THE GAP.
-        -----------------------------------------------------------------------------------------------------------------
-        */
-        console.log('---------------------------------------------------------------------------------------------');
-        console.log('---------------------------------------------------------------------------------------------');
-        console.log(' ');                            /* blank line */
-        console.log('Good luck Clarinauts!  May Satoshi\'s force be with you.');
-        console.log(' ');                            /* blank line */
-        console.log('---------------------------------------------------------------------------------------------');
-        console.log('---------------------------------------------------------------------------------------------');
-
+         console.log(' ');
+         console.log(' ');
+         console.log(' ');
+         console.log('+------------------------------------------------------------------------------------------------+');
+         console.log('>>>>>>>>>>>>>>>> Good luck Clarinauts!  May Satoshi\'s force be with you. <<<<<<<<<<<<<<<<<<<<<<<<<');
+         console.log('+------------------------------------------------------------------------------------------------+');
+         console.log(' ');
+         console.log(' ');
+         console.log(' ');
     },
 });
