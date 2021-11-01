@@ -70,6 +70,9 @@
 (define-constant STATE-MEDIATOR-SAYS-BAD  u6334)  ;; 
 (define-constant STATE-SELLER-CANCELLED   u6335)  ;;
 (define-constant STATE-BUYER-CANCELLED    u6336)  ;;
+(define-constant STATE-SELLER-CANCEL-REQ  u6337)  ;; seller requests to cancel
+(define-constant STATE-BUYER-CANCEL-REQ   u6338)  ;; buyer requests to cancel
+(define-constant STATE-BOTH-CANCELLED     u6339)  ;; both seller and buyer cancelled escrow
 
 ;; Errors
 (define-constant ERR-WRONG-STATE-7000 u7000)
@@ -84,6 +87,10 @@
 (define-constant ERR-WRONG-STATE-7009 u7009)
 (define-constant ERR-WRONG-STATE-7010 u7010)
 (define-constant ERR-WRONG-STATE-7011 u7011)
+(define-constant ERR-WRONG-STATE-7012 u7012)
+(define-constant ERR-WRONG-STATE-7013 u7013)
+(define-constant ERR-WRONG-STATE-7014 u7014)
+(define-constant ERR-WRONG-STATE-7015 u7015)
 
 (define-constant ERR-ACTOR-NOT-ALLOWED-8000 u8000)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8001 u8001)
@@ -95,6 +102,8 @@
 (define-constant ERR-ACTOR-NOT-ALLOWED-8007 u8007)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8008 u8008)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8009 u8009)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8010 u8010)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8011 u8011)
 
 ;; --------------------
 ;;  Variables
@@ -225,12 +234,22 @@
 (define-read-only (is-state-seller-cancelled)
   (is-eq (get-escrow-status) STATE-SELLER-CANCELLED))
 
+(define-read-only (is-state-buyer-cancelled)
+  (is-eq (get-escrow-status) STATE-BUYER-CANCELLED))
+
+(define-read-only (is-state-seller-cancel-req)
+  (is-eq (get-escrow-status) STATE-SELLER-CANCEL-REQ))
+
+(define-read-only (is-state-buyer-cancel-req)
+  (is-eq (get-escrow-status) STATE-BUYER-CANCEL-REQ))
+
 (define-read-only (is-state-ready-for-next-round)
   (or (is-state-initial)
       (is-state-buyer-happy)
       (is-state-mediator-says-good)
       (is-state-mediator-says-bad)
       (is-state-seller-cancelled)
+      (is-state-buyer-cancelled)
   )
 )
   
@@ -315,7 +334,7 @@
 ;; ==============================================================
 
 ;; Seller cancels contract. No refund is needed because no locked funds yet.
-(define-public (bill-cancel-seller-refund-no)
+(define-public (cancel-seller-refund-no)
   (begin
     (asserts! (or (is-state-seller-initiated) (is-state-buyer-accepted)) 
               (err ERR-WRONG-STATE-7011)) ;; check contract status, if contract can be cancelled by seller
@@ -325,8 +344,72 @@
   )
 )
 
-(is-state-seller-buys-in)
-STATE-BUYER-CANCELLED
+;; Buyer cancels contract. No refund is needed because no locked funds yet.
+(define-public (cancel-buyer-refund-no)
+  (begin
+    (asserts! (or (is-state-seller-initiated) (is-state-buyer-accepted)) 
+              (err ERR-WRONG-STATE-7012)) ;; check contract status, if contract can be cancelled by buyer
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8010)) ;; buyer please
+    (set-escrow-status STATE-BUYER-CANCELLED)  ;; cancel contract
+    (ok (get-escrow-status))
+  )
+)
+
+;; Seller cancels contract. Refunds self.
+(define-public (cancel-seller-refund-self)
+  (begin
+    (asserts! (is-state-seller-buys-in) (err ERR-WRONG-STATE-7013)) ;; check contract status, if contract can be cancelled by seller
+    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8011)) ;; seller please
+    (try! (fund-refund-seller-only))
+    (set-escrow-status STATE-SELLER-CANCELLED)  ;; cancel contract
+    (ok (get-escrow-status))
+  )
+)
+
+(define-private (fund-refund-seller-only)
+  (begin
+    (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-seller))))  ;; refund seller
+    (ok u0)
+  )
+)
+
+;; Both seller and buyer agrees to cancel escrow.
+(define-private (cancel-refund-both)
+  (begin
+    (asserts! (or (is-state-seller-cancel-req)
+                   (is-state-buyer-cancel-req)
+              )
+              (err ERR-WRONG-STATE-7014) ;; check contract status, if contract can be cancelled
+    )
+    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8011)) ;; seller please
+    (try! (fund-refund-seller-only))
+    (set-escrow-status STATE-SELLER-CANCELLED)  ;; cancel contract
+    (ok (get-escrow-status))
+  )
+)
+
+;; Refund both seller and buyer, if both agrees
+(define-private (fund-refund-both)
+  (begin
+    (asserts! (and (is-state-seller-cancel-req)
+                   (is-state-buyer-cancel-req)
+              )
+              (err ERR-WRONG-STATE-7015) ;; check contract status, if contract can be cancelled
+    )
+    (try! (fund-refund-both-seller-buyer))
+    (set-escrow-status STATE-BOTH-CANCELLED)  ;; cancel contract
+    (ok (get-escrow-status))
+  )
+)
+
+(define-private (fund-refund-both-seller-buyer)
+  (begin
+    (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-seller))))  ;; refund seller
+    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-buyer))))  ;; refund buyer
+    (ok u0)
+  )
+)
+
 
 
 ;; =============================
