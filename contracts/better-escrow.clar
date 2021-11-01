@@ -68,6 +68,8 @@
 (define-constant STATE-BUYER-OK-MEDIATOR  u6332)  ;; 
 (define-constant STATE-MEDIATOR-SAYS-GOOD u6333)  ;; 
 (define-constant STATE-MEDIATOR-SAYS-BAD  u6334)  ;; 
+(define-constant STATE-SELLER-CANCELLED   u6335)  ;;
+(define-constant STATE-BUYER-CANCELLED    u6336)  ;;
 
 ;; Errors
 (define-constant ERR-WRONG-STATE-7000 u7000)
@@ -81,6 +83,7 @@
 (define-constant ERR-WRONG-STATE-7008 u7008)
 (define-constant ERR-WRONG-STATE-7009 u7009)
 (define-constant ERR-WRONG-STATE-7010 u7010)
+(define-constant ERR-WRONG-STATE-7011 u7011)
 
 (define-constant ERR-ACTOR-NOT-ALLOWED-8000 u8000)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8001 u8001)
@@ -91,6 +94,7 @@
 (define-constant ERR-ACTOR-NOT-ALLOWED-8006 u8006)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8007 u8007)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8008 u8008)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8009 u8009)
 
 ;; --------------------
 ;;  Variables
@@ -218,6 +222,19 @@
 (define-read-only (is-state-mediator-says-bad)
   (is-eq (var-get state-of-escrow) STATE-MEDIATOR-SAYS-BAD))
 
+(define-read-only (is-state-seller-cancelled)
+  (is-eq (var-get state-of-escrow) STATE-SELLER-CANCELLED))
+
+(define-read-only (is-state-ready-for-next-round)
+  (or (is-state-initial)
+      (is-state-buyer-happy)
+      (is-state-mediator-says-good)
+      (is-state-mediator-says-bad)
+      (is-state-seller-cancelled)
+  )
+)
+  
+
 
 ;; --------------------------------
 ;; -- Main process begins here. ---
@@ -226,10 +243,7 @@
 ;; Seller initiates a bill, with specified price.
 (define-public (bill-create (price-request uint))
   (begin
-    (asserts! (or (is-state-initial) 
-                  (is-state-buyer-happy)
-                  (is-state-mediator-says-good)
-                  (is-state-mediator-says-bad)) 
+    (asserts! (is-state-ready-for-next-round) 
               (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender)
     (set-price price-request)
@@ -297,6 +311,25 @@
     (ok u0)
   )
 )
+
+;; ==============================================================
+;;  Cancel Contract - seller and buyer agree to cancel contract
+;; ==============================================================
+
+;; Seller cancels contract. No refund is needed because no locked funds yet.
+(define-public (bill-cancel-seller-refund-no)
+  (begin
+    (asserts! (or (is-state-seller-initiated) 
+                  (is-state-buyer-accepted)
+                  (is-state-seller-buys-in)) 
+              (err ERR-WRONG-STATE-7011)) ;; check contract status, if contract can be cancelled by seller
+    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8009)) ;; seller please
+    (set-escrow-status STATE-SELLER-CANCELLED)
+    (ok (status-of-contract))
+  )
+)
+
+STATE-BUYER-CANCELLED
 
 ;; =============================
 ;;  MEDIATOR needed.  Oh boy.
