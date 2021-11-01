@@ -22,15 +22,15 @@ Clarinet.test({
 
         let block = chain.mineBlock([
            Tx.contractCall('better-escrow', 'about', [], seller.address),
-           Tx.contractCall('better-escrow', 'status-of-contract', [], seller.address),
+           Tx.contractCall('better-escrow', 'get-escrow-status', [], seller.address),
         ]);
 
         console.log('| about              = ' + block.receipts[0].result);
-        console.log('| status-of-contract = ' + block.receipts[1].result);
+        console.log('| get-escrow-status  = ' + block.receipts[1].result);
 
         assertEquals(block.receipts.length, 2);
         assertEquals(block.receipts[0].result.expectOk(), '"Just Another Escrow Application"');
-        assertEquals(block.receipts[1].result.expectOk(), 'u6000');
+        assertEquals(block.receipts[1].result, 'u6000');
         console.log('+------------------------------------------------------------------------------------------------+');
 
 
