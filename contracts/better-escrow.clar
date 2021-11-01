@@ -237,7 +237,7 @@
 
 
 ;; --------------------------------
-;; -- Main process begins here. ---
+;; -- MAIN PROCESS BEGINS HERE ---
 ;; --------------------------------
 
 ;; Seller initiates a bill, with specified price.
@@ -312,23 +312,23 @@
 )
 
 ;; ==============================================================
-;;  Cancel Contract - seller and buyer agree to cancel contract
+;;  Cancel Contract - seller or buyer cancels contract
 ;; ==============================================================
 
 ;; Seller cancels contract. No refund is needed because no locked funds yet.
 (define-public (bill-cancel-seller-refund-no)
   (begin
-    (asserts! (or (is-state-seller-initiated) 
-                  (is-state-buyer-accepted)
-                  (is-state-seller-buys-in)) 
+    (asserts! (or (is-state-seller-initiated) (is-state-buyer-accepted)) 
               (err ERR-WRONG-STATE-7011)) ;; check contract status, if contract can be cancelled by seller
     (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8009)) ;; seller please
-    (set-escrow-status STATE-SELLER-CANCELLED)
+    (set-escrow-status STATE-SELLER-CANCELLED)  ;; cancel contract
     (ok (status-of-contract))
   )
 )
 
+(is-state-seller-buys-in)
 STATE-BUYER-CANCELLED
+
 
 ;; =============================
 ;;  MEDIATOR needed.  Oh boy.
