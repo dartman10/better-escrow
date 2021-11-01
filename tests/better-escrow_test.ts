@@ -143,11 +143,8 @@ Clarinet.test({
          asset_contract_expected   = asset_contract_initial; 
          asset_contract_transacted = (parseInt((block.receipts[14].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
-
-         console.log(' ');                            /* blank line */
+         
          console.log('Nice. All good in the hood!');
-         console.log(' ');                            /* blank line */
-
     
         /*
         -----------------------------------------------------------------------------------------------------------------   
