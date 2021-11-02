@@ -91,6 +91,7 @@
 (define-constant ERR-WRONG-STATE-7013 u7013)
 (define-constant ERR-WRONG-STATE-7014 u7014)
 (define-constant ERR-WRONG-STATE-7015 u7015)
+(define-constant ERR-WRONG-STATE-7016 u7016)
 
 (define-constant ERR-ACTOR-NOT-ALLOWED-8000 u8000)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8001 u8001)
@@ -104,6 +105,8 @@
 (define-constant ERR-ACTOR-NOT-ALLOWED-8009 u8009)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8010 u8010)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8011 u8011)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8012 u8012)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8013 u8013)
 
 ;; --------------------
 ;;  Variables
@@ -355,7 +358,7 @@
   )
 )
 
-;; Seller cancels contract. Refunds self.
+;; Seller cancels contract. Refunds self.  At this escrow state, only seller has bought in, not buyer yet.
 (define-public (cancel-seller-refund-self)
   (begin
     (asserts! (is-state-seller-buys-in) (err ERR-WRONG-STATE-7013)) ;; check contract status, if contract can be cancelled by seller
@@ -366,35 +369,42 @@
   )
 )
 
-(define-private (fund-refund-seller-only)
+(define-private (fund-refund-seller-only)  ;; does enclosing stx-transfer in private functions makes it more secure?
   (begin
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-seller))))  ;; refund seller
     (ok u0)
   )
 )
 
-;; Both seller and buyer agrees to cancel escrow.
-(define-private (cancel-refund-both)
+;; Seller agrees or requests to cancel escrow.
+(define-private (cancel-seller-both-sign)
   (begin
-    (asserts! (or (is-state-seller-cancel-req)
-                   (is-state-buyer-cancel-req)
-              )
+    (asserts! (or (is-state-buyer-buys-in) (is-state-buyer-cancel-req))
               (err ERR-WRONG-STATE-7014) ;; check contract status, if contract can be cancelled
     )
-    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8011)) ;; seller please
-    (try! (fund-refund-seller-only))
-    (set-escrow-status STATE-SELLER-CANCELLED)  ;; cancel contract
+    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8012)) ;; seller please
+    (set-escrow-status STATE-SELLER-CANCEL-REQ)  ;; cancel contract
     (ok (get-escrow-status))
   )
 )
 
-;; Refund both seller and buyer, if both agrees
-(define-private (fund-refund-both)
+;; Buyer agrees or requests to cancel escrow.
+(define-private (cancel-buyer-both-sign)
   (begin
-    (asserts! (and (is-state-seller-cancel-req)
-                   (is-state-buyer-cancel-req)
-              )
+    (asserts! (or (is-state-buyer-buys-in) (is-state-seller-cancel-req))
               (err ERR-WRONG-STATE-7015) ;; check contract status, if contract can be cancelled
+    )
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8013)) ;; seller please
+    (set-escrow-status STATE-BUYER-CANCEL-REQ)  ;; cancel contract
+    (ok (get-escrow-status))
+  )
+)
+
+;; Refund both seller and buyer, if both agreeD
+(define-public (fund-refund-both)
+  (begin
+    (asserts! (and (is-state-seller-cancel-req) (is-state-buyer-cancel-req))
+              (err ERR-WRONG-STATE-7016) ;; check contract status, if contract can be cancelled
     )
     (try! (fund-refund-both-seller-buyer))
     (set-escrow-status STATE-BOTH-CANCELLED)  ;; cancel contract
@@ -402,7 +412,7 @@
   )
 )
 
-(define-private (fund-refund-both-seller-buyer)
+(define-private (fund-refund-both-seller-buyer) 
   (begin
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-seller))))  ;; refund seller
     (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-buyer))))  ;; refund buyer
