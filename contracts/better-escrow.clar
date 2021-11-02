@@ -133,7 +133,7 @@
 
 ;; about function - desribe this contract. make this part of trait.
 (define-read-only (about)
-   (ok "Just Another Escrow Application")
+   (ok "better escrow. version alpha. tested on clarinet 0.17.0.")
 )
 
 ;;  --- Setters and Getters ---
@@ -262,7 +262,19 @@
 ;; --------------------------------
 
 ;; Seller initiates a bill, with specified price.
-(define-public (bill-create (price-request uint))
+;; deprecated. use escrow-create instead.
+(define-public (bill-create (price-request uint))  
+  (begin
+    (asserts! (is-state-ready-for-next-round) (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
+    (set-principal-seller tx-sender)
+    (set-price price-request)
+    (set-escrow-status STATE-SELLER-INITIATED)
+    (ok (get-escrow-status))
+  )
+)
+
+;; Seller initiates an escrow, with specified price.
+(define-public (escrow-create (price-request uint))
   (begin
     (asserts! (is-state-ready-for-next-round) (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender)
@@ -274,6 +286,16 @@
 
 ;; Buyer accepts terms of the bill, no sending of funds yet.
 (define-public (bill-accept)
+  (begin
+    (asserts! (is-state-seller-initiated) (err ERR-WRONG-STATE-7001))  ;; check escrow status
+    (set-principal-buyer tx-sender)
+    (set-escrow-status STATE-BUYER-ACCEPTED)
+    (ok (get-escrow-status))
+  )
+)
+
+;; Buyer accepts terms of the escrow, no sending of funds yet.
+(define-public (escrow-accept)
   (begin
     (asserts! (is-state-seller-initiated) (err ERR-WRONG-STATE-7001))  ;; check escrow status
     (set-principal-buyer tx-sender)
