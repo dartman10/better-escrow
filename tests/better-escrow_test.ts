@@ -430,11 +430,8 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get asset. */          
-            /*
+
             Tx.contractCall('better-escrow', 'cancel-seller-refund-no',  [], seller.address),   
-            */
-            Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
-            Tx.contractCall('better-escrow', 'cancel-seller-refund-self',  [], seller.address),   
 
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get updated asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get updated asset. */       
@@ -461,12 +458,11 @@ Clarinet.test({
          console.log('| get-balance-buyer            | ' + block.receipts[7].result);
          console.log('| get-balance-contract         | ' + block.receipts[8].result);
 
-         console.log('| cancel-seller                | ' + block.receipts[9].result + ' -> Seller cancel.');  
-         console.log('| cancel-seller                | ' + block.receipts[10].result + ' -> Seller cancel.');  
+         console.log('| cancel-seller                | ' + block.receipts[9].result + ' -> Seller cancel.');   
 
-         console.log('| get-balance-seller           | ' + block.receipts[11].result  + ' -> Seller asset untouched.');
-         console.log('| get-balance-buyer            | ' + block.receipts[12].result  + ' -> Buyer asset untouched.');
-         console.log('| get-balance-contract         | ' + block.receipts[13].result  + ' -> Contract asset should be zero.');
+         console.log('| get-balance-seller           | ' + block.receipts[10].result  + ' -> Seller asset untouched.');
+         console.log('| get-balance-buyer            | ' + block.receipts[11].result  + ' -> Buyer asset untouched.');
+         console.log('| get-balance-contract         | ' + block.receipts[12].result  + ' -> Contract asset should be zero.');
          console.log('+------------------------------+-----------------------------------------------------------------+');
 
 
@@ -478,7 +474,7 @@ Clarinet.test({
          console.log('|                                  TEST SCENARIO #5                                              |');
          console.log('+------------------------------------------------------------------------------------------------+');        
          console.log('| Simulate a cancelled escrow transaction.                                                       |');
-         console.log('| In this case, seller cancels the escrow contract. No refund necessary.                         |');
+         console.log('| In this case, seller cancels and gets refunded. Buyer accepted but have not funded yet.        |');
          console.log('+------------------------------------------------------------------------------------------------+');
 
          block = chain.mineBlock([
@@ -486,20 +482,22 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
-            Tx.contractCall('better-escrow', 'bill-create',  [price], seller.address),
-            Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
+
+            Tx.contractCall('better-escrow', 'escrow-create',  [price], seller.address),
+            Tx.contractCall('better-escrow', 'escrow-accept',  [], buyer.address),
+
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get asset. */          
-            /*
-            Tx.contractCall('better-escrow', 'cancel-seller-refund-no',  [], seller.address),   
-            */
+
             Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
             Tx.contractCall('better-escrow', 'cancel-seller-refund-self',  [], seller.address),   
 
-            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get updated asset. */
-            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get updated asset. */       
-            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get final asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get final asset. */       
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get final asset. */
 
          ]);
 
@@ -516,19 +514,91 @@ Clarinet.test({
          console.log('| get-balance-buyer            | ' + block.receipts[2].result + ' -> Buyer initial balance.');
          console.log('| get-balance-contract         | ' + block.receipts[3].result); 
 
-         console.log('| bill-create                  | ' + block.receipts[4].result + ' -> Seller initiates a bill');
-         console.log('| bill-accept                  | ' + block.receipts[5].result + ' -> Buyer accepts the bill');
+         console.log('| escrow-create                | ' + block.receipts[4].result + ' -> Seller initiates an escrow.');
+         console.log('| escrow-accept                | ' + block.receipts[5].result + ' -> Buyer accepts the escrow.');
          console.log('| get-balance-seller           | ' + block.receipts[6].result);
          console.log('| get-balance-buyer            | ' + block.receipts[7].result);
          console.log('| get-balance-contract         | ' + block.receipts[8].result);
 
-         console.log('| cancel-seller                | ' + block.receipts[9].result + ' -> Seller cancel.');  
-         console.log('| cancel-seller                | ' + block.receipts[10].result + ' -> Seller cancel.');  
+         console.log('| fund-seller                  | ' + block.receipts[9].result + ' -> Seller locks in funds.');  
+         console.log('| get-balance-seller           | ' + block.receipts[10].result  + ' -> Seller asset after fund transfer.');
+         console.log('| get-balance-contract         | ' + block.receipts[11].result  + ' -> Contract asset after fund transfer.');
+         console.log('| cancel-seller-refund-self    | ' + block.receipts[12].result + ' -> Seller cancel and refund self.');  
 
-         console.log('| get-balance-seller           | ' + block.receipts[11].result  + ' -> Seller asset untouched.');
-         console.log('| get-balance-buyer            | ' + block.receipts[12].result  + ' -> Buyer asset untouched.');
-         console.log('| get-balance-contract         | ' + block.receipts[13].result  + ' -> Contract asset should be zero.');
+         console.log('| get-balance-seller           | ' + block.receipts[13].result  + ' -> Seller asset after refund.');
+         console.log('| get-balance-buyer            | ' + block.receipts[14].result  + ' -> Buyer asset untouched.');
+         console.log('| get-balance-contract         | ' + block.receipts[15].result  + ' -> Contract asset should be zero.');
          console.log('+------------------------------+-----------------------------------------------------------------+');
+
+
+
+         console.log(' ');                           
+         console.log(' ');
+         console.log(' ');
+         console.log('+------------------------------------------------------------------------------------------------+');
+         console.log('|                                  TEST SCENARIO #6                                              |');
+         console.log('+------------------------------------------------------------------------------------------------+');        
+         console.log('| Simulate a cancelled escrow transaction.                                                       |');
+         console.log('| In this case, both seller and buyer agree to cancel and get refunds.                           |');
+         console.log('+------------------------------------------------------------------------------------------------+');
+
+         block = chain.mineBlock([
+            Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
+            Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
+
+            Tx.contractCall('better-escrow', 'escrow-create',  [price], seller.address),
+            Tx.contractCall('better-escrow', 'escrow-accept',  [], buyer.address),
+
+            Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
+            Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address), 
+            
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get updated asset. */       
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
+
+            Tx.contractCall('better-escrow', 'cancel-seller-both-sign',  [], seller.address),   
+            Tx.contractCall('better-escrow', 'cancel-buyer-both-sign',  [], buyer.address),   
+            Tx.contractCall('better-escrow', 'fund-refund-both',  [], seller.address),   
+
+            Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get final asset. */
+            Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get final asset. */       
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get final asset. */
+
+         ]);
+
+         console.log('| seller.address   = ' + seller.address);
+         console.log('| buyer.address    = ' + buyer.address);
+         console.log('| mediator.address = ' + mediator.address);
+         console.log('| price            = ' + price);
+         console.log('| result count     = ' + block.receipts.length);
+         console.log('+------------------------------+----------------------------------------------------------------+');
+         console.log('|      Function Name           |   Return value                                                 |');
+         console.log('+------------------------------+----------------------------------------------------------------+');
+         console.log('| get-principal-contract       | ' + block.receipts[0].result);
+         console.log('| get-balance-seller           | ' + block.receipts[1].result + ' -> Seller initial balance.');
+         console.log('| get-balance-buyer            | ' + block.receipts[2].result + ' -> Buyer initial balance.');
+         console.log('| get-balance-contract         | ' + block.receipts[3].result); 
+
+         console.log('| escrow-create                | ' + block.receipts[4].result + ' -> Seller initiates an escrow.');
+         console.log('| escrow-accept                | ' + block.receipts[5].result + ' -> Buyer accepts the escrow.');
+         console.log('| fund-seller                  | ' + block.receipts[6].result + ' -> Seller locks in funds.');  
+         console.log('| fund-buyer                   | ' + block.receipts[7].result);
+         
+         console.log('| get-balance-seller           | ' + block.receipts[8].result  + ' -> Seller asset after fund transfer.');
+         console.log('| get-balance-buyer            | ' + block.receipts[9].result  + ' -> Buyer asset after fund transfer.');
+         console.log('| get-balance-contract         | ' + block.receipts[10].result  + ' -> Contract asset after fund transfer.');
+
+         console.log('| cancel-seller-both-sign      | ' + block.receipts[11].result );  
+         console.log('| cancel-buyer-both-sign       | ' + block.receipts[12].result );  
+         console.log('| fund-refund-both             | ' + block.receipts[13].result );  
+
+         console.log('| get-balance-seller           | ' + block.receipts[14].result  + ' -> Seller asset after refund.');
+         console.log('| get-balance-buyer            | ' + block.receipts[15].result  + ' -> Buyer asset untouched.');
+         console.log('| get-balance-contract         | ' + block.receipts[16].result  + ' -> Contract asset should be zero.');
+         console.log('+------------------------------+-----------------------------------------------------------------+');
+
 
          /*
          -----------------------------------------------------------------------------------------------------------------   

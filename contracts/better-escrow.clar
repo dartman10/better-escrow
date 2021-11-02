@@ -391,7 +391,7 @@
   )
 )
 
-(define-private (fund-refund-seller-only)  ;; does enclosing stx-transfer in private functions makes it more secure?
+(define-private (fund-refund-seller-only)  ;; does separately enclosing stx-transfer in private functions makes it more secure?
   (begin
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-seller))))  ;; refund seller
     (ok u0)
@@ -399,7 +399,7 @@
 )
 
 ;; Seller agrees or requests to cancel escrow.
-(define-private (cancel-seller-both-sign)
+(define-public (cancel-seller-both-sign)
   (begin
     (asserts! (or (is-state-buyer-buys-in) (is-state-buyer-cancel-req))
               (err ERR-WRONG-STATE-7014) ;; check contract status, if contract can be cancelled
@@ -411,7 +411,7 @@
 )
 
 ;; Buyer agrees or requests to cancel escrow.
-(define-private (cancel-buyer-both-sign)
+(define-public (cancel-buyer-both-sign)
   (begin
     (asserts! (or (is-state-buyer-buys-in) (is-state-seller-cancel-req))
               (err ERR-WRONG-STATE-7015) ;; check contract status, if contract can be cancelled
