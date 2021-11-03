@@ -422,7 +422,10 @@
 (define-public (fund-refund-both)
   (begin
     (asserts! (is-state-buyer-cancel-req) (err ERR-WRONG-STATE-7016)) ;; check contract status, if contract can be cancelled
-    (asserts! (is-eq tx-sender (or (get-principal-seller) (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8014)) ;; either seller or buyer
+    (asserts! (or (is-eq tx-sender (get-principal-seller) (get-principal-buyer))
+    xxxxx
+              ) 
+              (err ERR-ACTOR-NOT-ALLOWED-8014)) ;; either seller or buyer
     (try! (fund-refund-both-seller-buyer))
     (set-escrow-status STATE-BOTH-CANCELLED)  ;; cancel contract
     (ok (get-escrow-status))
