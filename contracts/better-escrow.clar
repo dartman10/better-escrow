@@ -398,36 +398,31 @@
   )
 )
 
-;; Seller agrees or requests to cancel escrow.
+;; Seller requests to cancel escrow after buyer bought in.
 (define-public (cancel-seller-both-sign)
   (begin
-    (asserts! (or (is-state-buyer-buys-in) (is-state-buyer-cancel-req))
-              (err ERR-WRONG-STATE-7014) ;; check contract status, if contract can be cancelled
-    )
+    (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7014)) ;; check contract status, if contract can be cancelled
     (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8012)) ;; seller please
     (set-escrow-status STATE-SELLER-CANCEL-REQ)  ;; cancel contract
     (ok (get-escrow-status))
   )
 )
 
-;; Buyer agrees or requests to cancel escrow.
+;; Buyer agrees to cancel escrow after seller requests to cancel.
 (define-public (cancel-buyer-both-sign)
   (begin
-    (asserts! (or (is-state-buyer-buys-in) (is-state-seller-cancel-req))
-              (err ERR-WRONG-STATE-7015) ;; check contract status, if contract can be cancelled
-    )
+    (asserts! (is-state-seller-cancel-req) (err ERR-WRONG-STATE-7015)) ;; check contract status, if contract can be cancelled
     (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8013)) ;; seller please
     (set-escrow-status STATE-BUYER-CANCEL-REQ)  ;; cancel contract
     (ok (get-escrow-status))
   )
 )
 
-;; Refund both seller and buyer, if both agreeD
+;; Refund both seller and buyer after checking both agreed to cancel.  Either seller or buyer can invoke this refund function.
 (define-public (fund-refund-both)
   (begin
-    (asserts! (and (is-state-seller-cancel-req) (is-state-buyer-cancel-req))
-              (err ERR-WRONG-STATE-7016) ;; check contract status, if contract can be cancelled
-    )
+    (asserts! (is-state-buyer-cancel-req) (err ERR-WRONG-STATE-7016)) ;; check contract status, if contract can be cancelled
+    (asserts! (is-eq tx-sender (or (get-principal-seller) (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8014)) ;; either seller or buyer
     (try! (fund-refund-both-seller-buyer))
     (set-escrow-status STATE-BOTH-CANCELLED)  ;; cancel contract
     (ok (get-escrow-status))
