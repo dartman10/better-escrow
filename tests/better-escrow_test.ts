@@ -59,8 +59,8 @@ Clarinet.test({
 
         block = chain.mineBlock([
             Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
-            Tx.contractCall('better-escrow', 'bill-create',  [price], seller.address),
-            Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
+            Tx.contractCall('better-escrow', 'escrow-create',  [price], seller.address),
+            Tx.contractCall('better-escrow', 'escrow-accept',  [], buyer.address),
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
@@ -83,8 +83,8 @@ Clarinet.test({
          console.log('|      Function Name           |   Return value                                                  |');
          console.log('+------------------------------+-----------------------------------------------------------------+');
          console.log('| get-principal-contract       | ' + block.receipts[0].result );
-         console.log('| bill-create                  | ' + block.receipts[1].result );
-         console.log('| bill-accept                  | ' + block.receipts[2].result );
+         console.log('| escrow-create                | ' + block.receipts[1].result );
+         console.log('| escrow-accept                | ' + block.receipts[2].result );
          console.log('| get-balance-seller           | ' + block.receipts[3].result ); 
          console.log('| get-balance-buyer            | ' + block.receipts[4].result );
          console.log('| get-balance-contract         | ' + block.receipts[5].result );
@@ -101,8 +101,8 @@ Clarinet.test({
         
 
          assertEquals(block.receipts.length, 15);  /* expected contract call results */
-         assertEquals(block.receipts[1].result.expectOk(),  'u6100');  /* bill-create   */
-         assertEquals(block.receipts[2].result.expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[1].result.expectOk(),  'u6100');  /* escrow-create   */
+         assertEquals(block.receipts[2].result.expectOk(),  'u6110');  /* escrow-accept   */
          assertEquals(block.receipts[6].result.expectOk(),  'u6210');  /* fund-seller   */
          assertEquals(block.receipts[7].result.expectOk(),  'u6220');  /* fund-buyer    */
          assertEquals(block.receipts[11].result.expectOk(), 'u6230');  /* fund-release  */
@@ -161,8 +161,8 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
-            Tx.contractCall('better-escrow', 'bill-create',  [price], seller.address),
-            Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
+            Tx.contractCall('better-escrow', 'escrow-create',  [price], seller.address),
+            Tx.contractCall('better-escrow', 'escrow-accept',  [], buyer.address),
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
@@ -198,8 +198,8 @@ Clarinet.test({
          console.log('| get-balance-buyer            | ' + block.receipts[2].result + ' --> Buyer initial balance.');
          console.log('| mediator.balance             | ' + mediator.balance + '         --> Mediator initial balance.');  /* account.mediator initial balance. at this point, mediator principal is still NONE */          
          console.log('| get-balance-contract         | ' + block.receipts[3].result); 
-         console.log('| bill-create                  | ' + block.receipts[4].result + ' --> Seller initiates a bill');
-         console.log('| bill-accept                  | ' + block.receipts[5].result + ' --> Buyer accepts the bill');
+         console.log('| escrow-create                | ' + block.receipts[4].result + ' --> Seller initiates a escrow');
+         console.log('| escrow-accept                | ' + block.receipts[5].result + ' --> Buyer accepts the escrow');
          console.log('| get-balance-seller           | ' + block.receipts[6].result);
          console.log('| get-balance-buyer            | ' + block.receipts[7].result);
          console.log('| get-balance-contract         | ' + block.receipts[8].result);
@@ -224,8 +224,8 @@ Clarinet.test({
          console.log('| Asserting smart contract function results...');
  
          assertEquals(block.receipts.length, 25);  /* expected contract call results */
-         assertEquals(block.receipts[4].result.expectOk(),  'u6100');  /* bill-create   */
-         assertEquals(block.receipts[5].result.expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[4].result.expectOk(),  'u6100');  /* escrow-create   */
+         assertEquals(block.receipts[5].result.expectOk(),  'u6110');  /* escrow-accept   */
          assertEquals(block.receipts[9].result.expectOk(),  'u6210');  /* fund-seller   */
          assertEquals(block.receipts[10].result.expectOk(),  'u6220');  /* fund-buyer    */
          assertEquals(block.receipts[14].result.expectOk(), 'u6221');  /* request-mediator  */       
@@ -290,8 +290,8 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address), /* Get updated asset. */   
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
-            Tx.contractCall('better-escrow', 'bill-create',  [price], seller.address),
-            Tx.contractCall('better-escrow', 'bill-accept',  [], buyer.address),
+            Tx.contractCall('better-escrow', 'escrow-create',  [price], seller.address),
+            Tx.contractCall('better-escrow', 'escrow-accept',  [], buyer.address),
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */          
@@ -327,8 +327,8 @@ Clarinet.test({
          console.log('| get-balance-buyer            | ' + block.receipts[2].result + ' -> Buyer initial balance.');
          console.log('| get-balance-mediator         | ' + block.receipts[3].result + ' -> Mediator initial balance.');  
          console.log('| get-balance-contract         | ' + block.receipts[4].result); 
-         console.log('| bill-create                  | ' + block.receipts[5].result + ' -> Seller initiates a bill');
-         console.log('| bill-accept                  | ' + block.receipts[6].result + ' -> Buyer accepts the bill');
+         console.log('| escrow-create                | ' + block.receipts[5].result + ' -> Seller initiates a escrow');
+         console.log('| escrow-accept                | ' + block.receipts[6].result + ' -> Buyer accepts the escrow');
          console.log('| get-balance-seller           | ' + block.receipts[7].result);
          console.log('| get-balance-buyer            | ' + block.receipts[8].result);
          console.log('| get-balance-contract         | ' + block.receipts[9].result);
@@ -354,8 +354,8 @@ Clarinet.test({
 
          assertEquals(block.receipts.length, 26);  /* expected contract call results. useful so i don't have to wonder if things get misaligned */
 
-         assertEquals(block.receipts[5].result.expectOk(),  'u6100');  /* bill-create   */
-         assertEquals(block.receipts[6].result.expectOk(),  'u6110');  /* bill-accept   */
+         assertEquals(block.receipts[5].result.expectOk(),  'u6100');  /* escrow-create   */
+         assertEquals(block.receipts[6].result.expectOk(),  'u6110');  /* escrow-accept   */
          assertEquals(block.receipts[10].result.expectOk(),  'u6210');  /* fund-seller   */
          assertEquals(block.receipts[11].result.expectOk(),  'u6220');  /* fund-buyer    */
          assertEquals(block.receipts[15].result.expectOk(), 'u6221');  /* request-mediator  */       
@@ -595,8 +595,8 @@ Clarinet.test({
          console.log('| fund-refund-both             | ' + block.receipts[13].result );  
 
          console.log('| get-balance-seller           | ' + block.receipts[14].result  + ' -> Seller asset after refund.');
-         console.log('| get-balance-buyer            | ' + block.receipts[15].result  + ' -> Buyer asset untouched.');
-         console.log('| get-balance-contract         | ' + block.receipts[16].result  + ' -> Contract asset should be zero.');
+         console.log('| get-balance-buyer            | ' + block.receipts[15].result  + ' -> Buyer asset after refund.');
+         console.log('| get-balance-contract         | ' + block.receipts[16].result  + ' -> Contract final asset should be zero.');
          console.log('+------------------------------+-----------------------------------------------------------------+');
 
 

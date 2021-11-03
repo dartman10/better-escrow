@@ -112,7 +112,6 @@
 ;; --------------------
 ;;  Variables
 ;; --------------------
-;;(define-data-var state-of-escrow uint u6000)             ;; deprecated . use escrow-status instead.
 (define-data-var escrow-status uint u6000)               ;; current status of escrow contract
 (define-data-var principal-seller   principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later. to avoid "optional", "unwrap" and "some"
 (define-data-var principal-buyer    principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
@@ -247,6 +246,9 @@
 (define-read-only (is-state-buyer-cancel-req)
   (is-eq (get-escrow-status) STATE-BUYER-CANCEL-REQ))
 
+(define-read-only (is-state-both-cancelled)
+  (is-eq (get-escrow-status) STATE-BOTH-CANCELLED))
+
 (define-read-only (is-state-ready-for-next-round)
   (or (is-state-initial)
       (is-state-buyer-happy)
@@ -254,6 +256,7 @@
       (is-state-mediator-says-bad)
       (is-state-seller-cancelled)
       (is-state-buyer-cancelled)
+      (is-state-both-cancelled)
   )
 )
   
@@ -262,35 +265,13 @@
 ;; -- MAIN PROCESS BEGINS HERE ---
 ;; --------------------------------
 
-;; Seller initiates a bill, with specified price.
-;; deprecated. use escrow-create instead.
-(define-public (bill-create (price-request uint))  
-  (begin
-    (asserts! (is-state-ready-for-next-round) (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
-    (set-principal-seller tx-sender)
-    (set-price price-request)
-    (set-escrow-status STATE-SELLER-INITIATED)
-    (ok (get-escrow-status))
-  )
-)
-
 ;; Seller initiates an escrow, with specified price.
 (define-public (escrow-create (price-request uint))
   (begin
     (asserts! (is-state-ready-for-next-round) (err ERR-WRONG-STATE-7000)) ;; check if contract status is eligible for the next round
     (set-principal-seller tx-sender)
-    (set-price price-request)
+    (set-price  price-request)
     (set-escrow-status STATE-SELLER-INITIATED)
-    (ok (get-escrow-status))
-  )
-)
-
-;; Buyer accepts terms of the bill, no sending of funds yet.
-(define-public (bill-accept)
-  (begin
-    (asserts! (is-state-seller-initiated) (err ERR-WRONG-STATE-7001))  ;; check escrow status
-    (set-principal-buyer tx-sender)
-    (set-escrow-status STATE-BUYER-ACCEPTED)
     (ok (get-escrow-status))
   )
 )
