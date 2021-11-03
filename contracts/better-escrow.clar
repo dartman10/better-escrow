@@ -92,6 +92,7 @@
 (define-constant ERR-WRONG-STATE-7014 u7014)
 (define-constant ERR-WRONG-STATE-7015 u7015)
 (define-constant ERR-WRONG-STATE-7016 u7016)
+(define-constant ERR-WRONG-STATE-7017 u7017)
 
 (define-constant ERR-ACTOR-NOT-ALLOWED-8000 u8000)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8001 u8001)
@@ -108,6 +109,7 @@
 (define-constant ERR-ACTOR-NOT-ALLOWED-8012 u8012)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8013 u8013)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8014 u8014)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8015 u8015)
 
 ;; --------------------
 ;;  Variables
@@ -117,6 +119,7 @@
 (define-data-var principal-buyer    principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
 (define-data-var principal-mediator principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
 (define-data-var price uint u0)                          ;; item price
+(define-data-var mediator-commission uint u10)           ;; commission rate for mediator. default value is 10%. seller or buyer can adjust rate.
 
 
 ;; ------------------
@@ -201,9 +204,6 @@
 (define-read-only (is-state-initial)
   (is-eq (get-escrow-status) STATE-INITIAL))
 
-(define-read-only (is-state-buyer-happy)
-  (is-eq (get-escrow-status) STATE-BUYER-IS-HAPPY))
-
 (define-read-only (is-state-seller-initiated)
   (is-eq (get-escrow-status) STATE-SELLER-INITIATED))
 
@@ -215,6 +215,9 @@
 
 (define-read-only (is-state-buyer-buys-in)
   (is-eq (get-escrow-status) STATE-BUYER-BUYS-IN))
+
+(define-read-only (is-state-buyer-happy)
+  (is-eq (get-escrow-status) STATE-BUYER-IS-HAPPY))
 
 (define-read-only (is-state-mediator-requested)
   (is-eq (get-escrow-status) STATE-MEDIATOR-REQUESTED))
@@ -249,7 +252,7 @@
 (define-read-only (is-state-both-cancelled)
   (is-eq (get-escrow-status) STATE-BOTH-CANCELLED))
 
-(define-read-only (is-state-ready-for-next-round)
+(define-read-only (is-state-ready-for-next-round)  ;; is escrow contract currently inactive and ready for next escrow transaction?
   (or (is-state-initial)
       (is-state-buyer-happy)
       (is-state-mediator-says-good)
@@ -259,8 +262,16 @@
       (is-state-both-cancelled)
   )
 )
-  
 
+(define-read-only (is-state-ok-adjust-commission) ;; check if status allows for commission rate to be adjusted
+  (or (is-state-mediator-requested) (is-state-buyer-buys-in))
+)
+
+;; Functions to check principals
+(define-read-only (is-principal-seller-or-buyer)  
+  (or (is-eq tx-sender (get-principal-buyer)) (is-eq tx-sender (get-principal-seller)))
+)
+    
 ;; --------------------------------
 ;; -- MAIN PROCESS BEGINS HERE ---
 ;; --------------------------------
@@ -518,8 +529,24 @@
   )
 )
 
-(define-private (get-mediator-commission)
-  (/ (get-price) u10)  ;; mediator commission is hardcoded at 10%. improve later to allow buyer/seller to set dynamically.
+(define-public (mediator-commission-adjust (commission-rate uint))
+  (begin
+    (asserts! (is-principal-seller-or-buyer) (err ERR-ACTOR-NOT-ALLOWED-8015))
+    (asserts! (is-state-ok-adjust-commission) (err ERR-WRONG-STATE-7017))
+    (set-mediator-commission-rate commission-rate)
+    (ok u0)  ;; must return a uint
+  )
+)
+
+(define-private (set-mediator-commission-rate (commission-rate uint))
+  ;; to do - verify if input parameter is between 1 and 20.  Capping it at 20%, unless there's a need later to increase or decrease.
+  (var-set mediator-commission-rate commission-rate)
+)
+
+(define-private (get-mediator-commission-amount)
+  ;;(/ (get-price) u10)  ;; mediator commission is hardcoded at 10%. improve later to allow buyer/seller to set dynamically.
+  ;;(var-get mediator-commission)
+  (* (get-price) (/ (get-mediator-commission-rate) (100)))
 )
 
 ;; Mediator decided good, so disburse funds appropriately.

@@ -252,6 +252,7 @@ Clarinet.test({
 
          /* Check seller balance. Expected : initial balance + sell price - commission. */
          let commission = ((parseInt((price.replace('u','0')),10)) / 10);
+         console.log ('commission=' + commission);
          asset_seller_expected   = (asset_seller_initial + (parseInt((price.replace('u','0')),10)) - (commission / 2));  /* Add price minus half of commission */
          asset_seller_transacted = (parseInt((block.receipts[21].result.expectOk()).replace('u','0')));
          assertEquals(asset_seller_transacted, (asset_seller_expected)); 
