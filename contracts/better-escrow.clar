@@ -107,6 +107,7 @@
 (define-constant ERR-ACTOR-NOT-ALLOWED-8011 u8011)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8012 u8012)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8013 u8013)
+(define-constant ERR-ACTOR-NOT-ALLOWED-8014 u8014)
 
 ;; --------------------
 ;;  Variables
@@ -403,7 +404,7 @@
   (begin
     (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7014)) ;; check contract status, if contract can be cancelled
     (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8012)) ;; seller please
-    (set-escrow-status STATE-SELLER-CANCEL-REQ)  ;; cancel contract
+    (set-escrow-status STATE-SELLER-CANCEL-REQ)  ;; set escrow status
     (ok (get-escrow-status))
   )
 )
@@ -412,8 +413,8 @@
 (define-public (cancel-buyer-both-sign)
   (begin
     (asserts! (is-state-seller-cancel-req) (err ERR-WRONG-STATE-7015)) ;; check contract status, if contract can be cancelled
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8013)) ;; seller please
-    (set-escrow-status STATE-BUYER-CANCEL-REQ)  ;; cancel contract
+    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8013)) ;; buyer agree to cancel
+    (set-escrow-status STATE-BUYER-CANCEL-REQ)  ;; set escrow status
     (ok (get-escrow-status))
   )
 )
@@ -422,8 +423,8 @@
 (define-public (fund-refund-both)
   (begin
     (asserts! (is-state-buyer-cancel-req) (err ERR-WRONG-STATE-7016)) ;; check contract status, if contract can be cancelled
-    (asserts! (or (is-eq tx-sender (get-principal-seller) (get-principal-buyer))
-    xxxxx
+    (asserts! (or (is-eq tx-sender (get-principal-seller))
+                  (is-eq tx-sender (get-principal-buyer))
               ) 
               (err ERR-ACTOR-NOT-ALLOWED-8014)) ;; either seller or buyer
     (try! (fund-refund-both-seller-buyer))
