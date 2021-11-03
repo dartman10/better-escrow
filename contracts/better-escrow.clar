@@ -119,8 +119,8 @@
 (define-data-var principal-buyer    principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
 (define-data-var principal-mediator principal tx-sender) ;; initial value set to tx-sender, but will be overwritten later.
 (define-data-var price uint u0)                          ;; item price
-(define-data-var mediator-commission uint u10)           ;; commission rate for mediator. default value is 10%. seller or buyer can adjust rate.
-
+(define-data-var mediator-commission-rate uint u10)      ;; commission rate for mediator. default value is 10%. seller or buyer can adjust rate.
+(define-data-var mediator-commission-amount uint u0)     ;; commission amount for mediator
 
 ;; ------------------
 ;; --- FUNCTIONS ----
@@ -522,9 +522,9 @@
 ;;  - Buyer gets all his money back minus half mediator commission.
 (define-private (fund-refund)
   (begin
-    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral
-    (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission) u2)) tx-sender (get-principal-buyer))))  ;; send collateral back to buyer minus half of mediator commission
-    (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission) u2)) tx-sender (get-principal-seller))))  ;; send collateral back to seller minus half of mediator commission
+    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission-amount)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral
+    (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-buyer))))  ;; send collateral back to buyer minus half of mediator commission
+    (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-seller))))  ;; send collateral back to seller minus half of mediator commission
     (ok u0)
   )
 )
@@ -543,18 +543,26 @@
   (var-set mediator-commission-rate commission-rate)
 )
 
+(define-read-only (get-mediator-commission-rate)
+  (var-get mediator-commission-rate)
+)
+
 (define-private (get-mediator-commission-amount)
   ;;(/ (get-price) u10)  ;; mediator commission is hardcoded at 10%. improve later to allow buyer/seller to set dynamically.
   ;;(var-get mediator-commission)
-  (* (get-price) (/ (get-mediator-commission-rate) (100)))
+  (* (get-price) (/ (get-mediator-commission-rate) u100))
+;;  (get-price)
+;; (* (get-price) u10)
+ ;;(/ (get-mediator-commission-rate) u100)
+
 )
 
 ;; Mediator decided good, so disburse funds appropriately.
 (define-private (fund-disburse)
   (begin
-    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral/price
-    (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission) u2)) tx-sender (get-principal-buyer))))  ;; send collateral/price back to buyer minus half of mediator commission, and minus the item price
-    (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission) u2)) tx-sender (get-principal-seller))))  ;; send collateral/price funds plus price to seller, minus half of mediator commission
+    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission-amount)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral/price
+    (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-buyer))))  ;; send collateral/price back to buyer minus half of mediator commission, and minus the item price
+    (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-seller))))  ;; send collateral/price funds plus price to seller, minus half of mediator commission
     (ok u0)
   )
 )
