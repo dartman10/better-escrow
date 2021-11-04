@@ -111,6 +111,8 @@
 (define-constant ERR-ACTOR-NOT-ALLOWED-8014 u8014)
 (define-constant ERR-ACTOR-NOT-ALLOWED-8015 u8015)
 
+(define-constant ERR-COMMISSION-RATE-INVALID u9001)
+
 ;; --------------------
 ;;  Variables
 ;; --------------------
@@ -540,7 +542,11 @@
 
 (define-private (set-mediator-commission-rate (commission-rate uint))
   ;; to do - verify if input parameter is between 1 and 20.  Capping it at 20%, unless there's a need later to increase or decrease.
-  (var-set mediator-commission-rate commission-rate)
+  (begin
+    (asserts! (> commission-rate u0) (err ERR-COMMISSION-RATE-INVALID))
+    (var-set mediator-commission-rate commission-rate)
+    (ok u0)
+  )
 )
 
 (define-read-only (get-mediator-commission-rate)
@@ -548,13 +554,7 @@
 )
 
 (define-private (get-mediator-commission-amount)
-  ;;(/ (get-price) u10)  ;; mediator commission is hardcoded at 10%. improve later to allow buyer/seller to set dynamically.
-  ;;(var-get mediator-commission)
-  (* (get-price) (/ (get-mediator-commission-rate) u100))
-;;  (get-price)
-;; (* (get-price) u10)
- ;;(/ (get-mediator-commission-rate) u100)
-
+  (* (get-price) (/ (get-mediator-commission-rate) u100))  ;; calculate the commission amount. what happens to fractional values?
 )
 
 ;; Mediator decided good, so disburse funds appropriately.
