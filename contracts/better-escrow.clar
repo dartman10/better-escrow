@@ -536,7 +536,6 @@
     (asserts! (is-principal-seller-or-buyer) (err ERR-ACTOR-NOT-ALLOWED-8015))
     (asserts! (is-state-ok-adjust-commission) (err ERR-WRONG-STATE-7017))
     (set-mediator-commission-rate commission-rate)
-    (ok u0)  ;; must return a uint
   )
 )
 
@@ -553,8 +552,8 @@
   (var-get mediator-commission-rate)
 )
 
-(define-private (get-mediator-commission-amount)
-  (* (get-price) (/ (get-mediator-commission-rate) u100))  ;; calculate the commission amount. what happens to fractional values?
+(define-read-only (get-mediator-commission-amount)
+  (/ (* (get-price) (get-mediator-commission-rate)) u100)  ;; calculate the commission amount. what happens to fractional values?
 )
 
 ;; Mediator decided good, so disburse funds appropriately.

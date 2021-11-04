@@ -178,10 +178,12 @@ Clarinet.test({
             Tx.contractCall('better-escrow', 'mediator-confirmation-seller', [], seller.address),  /* Seller accepted Mediator.      */
             Tx.contractCall('better-escrow', 'mediator-confirmation-buyer', [], buyer.address),    /* Buyer accepted Mediator.       */   
             Tx.contractCall('better-escrow', 'mediator-decides-good', [], mediator.address),       /* Mediator decides good transaction. Disburse funds. */
+            Tx.contractCall('better-escrow', 'get-mediator-commission-rate', [], mediator.address), /* Get commission rate */
+            Tx.contractCall('better-escrow', 'get-mediator-commission-amount', [], mediator.address), /* Get commission amount */          
             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get updated asset. */
             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get updated asset. */       
             Tx.contractCall('better-escrow', 'get-balance-mediator', [], mediator.address), /* Get updated asset. */   
-            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
+            Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */           
          ]);
 
          console.log('| seller.address   = ' + seller.address);
@@ -215,15 +217,17 @@ Clarinet.test({
          console.log('| mediator-confirmation-seller | ' + block.receipts[18].result + ' --> Seller approves the mediator');
          console.log('| mediator-confirmation-buyer  | ' + block.receipts[19].result + ' --> Buyer approves the mediator');
          console.log('| mediator-decides-good        | ' + block.receipts[20].result  + ' --> Mediator favors the original deal. Disburse funds.');
-         console.log('| get-balance-seller           | ' + block.receipts[21].result  + ' --> Seller gets paid, minus mediator commission');
-         console.log('| get-balance-buyer            | ' + block.receipts[22].result  + ' --> Buyer paid for the item price, minus mediator commission.');
-         console.log('| get-balance-mediator         | ' + block.receipts[23].result  + ' --> Mediator gets paid commission.');;
-         console.log('| get-balance-contract         | ' + block.receipts[24].result  + ' --> Contract principal final asset should be zero.');
+         console.log('| get-mediator-commission-rate | ' + block.receipts[21].result  + ' --> Commission percentage rate');
+         console.log('|get-mediator-commission-amount| ' + block.receipts[22].result  + ' --> Commission calculated amount');
+         console.log('| get-balance-seller           | ' + block.receipts[23].result  + ' --> Seller gets paid, minus mediator commission');
+         console.log('| get-balance-buyer            | ' + block.receipts[24].result  + ' --> Buyer paid for the item price, minus mediator commission.');
+         console.log('| get-balance-mediator         | ' + block.receipts[25].result  + ' --> Mediator gets paid commission.');;
+         console.log('| get-balance-contract         | ' + block.receipts[26].result  + ' --> Contract principal final asset should be zero.');
          console.log('+------------------------------+-----------------------------------------------------------------+');
-        
+
          console.log('| Asserting smart contract function results...');
  
-         assertEquals(block.receipts.length, 25);  /* expected contract call results */
+         assertEquals(block.receipts.length, 27);  /* expected contract call results */
          assertEquals(block.receipts[4].result.expectOk(),  'u6100');  /* escrow-create   */
          assertEquals(block.receipts[5].result.expectOk(),  'u6110');  /* escrow-accept   */
          assertEquals(block.receipts[9].result.expectOk(),  'u6210');  /* fund-seller   */
@@ -252,24 +256,24 @@ Clarinet.test({
 
          /* Check seller balance. Expected : initial balance + sell price - commission. */
          let commission = ((parseInt((price.replace('u','0')),10)) / 10);
-         console.log ('commission=' + commission);
+
          asset_seller_expected   = (asset_seller_initial + (parseInt((price.replace('u','0')),10)) - (commission / 2));  /* Add price minus half of commission */
-         asset_seller_transacted = (parseInt((block.receipts[21].result.expectOk()).replace('u','0')));
+         asset_seller_transacted = (parseInt((block.receipts[23].result.expectOk()).replace('u','0')));
          assertEquals(asset_seller_transacted, (asset_seller_expected)); 
 
          /* Check buyer balance. Expect initial balance subtracted with buy price. */
          asset_buyer_expected   = ((asset_buyer_initial - (parseInt((price.replace('u','0')),10))) - (commission / 2));  /* Subtract price and subtract half of commission  */
-         asset_buyer_transacted = (parseInt((block.receipts[22].result.expectOk()).replace('u','0')));
+         asset_buyer_transacted = (parseInt((block.receipts[24].result.expectOk()).replace('u','0')));
          assertEquals(asset_buyer_transacted, (asset_buyer_expected)); 
 
          /* Check mediator balance. Expected : initial balance plus commission. */
          let asset_mediator_expected   = (mediator.balance + commission);  
-         let asset_mediator_transacted = (parseInt((block.receipts[23].result.expectOk()).replace('u','0')));
+         let asset_mediator_transacted = (parseInt((block.receipts[25].result.expectOk()).replace('u','0')));
          assertEquals(asset_mediator_transacted, (asset_mediator_expected)); 
 
         /* Check principal contract balance. Expect balance equal to initial amount. Though initial zero. */
          asset_contract_expected   = asset_contract_initial; 
-         asset_contract_transacted = (parseInt((block.receipts[24].result.expectOk()).replace('u','0')));
+         asset_contract_transacted = (parseInt((block.receipts[26].result.expectOk()).replace('u','0')));
          assertEquals(asset_contract_transacted, asset_contract_expected); 
 
          console.log('| Nice. All good in the hood!');
