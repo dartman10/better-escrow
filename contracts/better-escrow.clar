@@ -124,42 +124,43 @@
 (define-data-var mediator-commission-rate uint u10)      ;; commission rate for mediator. default value is 10%. seller or buyer can adjust rate.
 (define-data-var mediator-commission-amount uint u0)     ;; commission amount for mediator
 
-;; ------------------
-;; --- FUNCTIONS ----
-;; ------------------
 
-;; echo function - to check if contract is reachable. make this part of trait.
-(define-read-only (echo (shout-out (string-ascii 100)))
+;; ----------------------------------------------------------------------------------------
+;; --- FUNCTIONS ----
+;; ----------------------------------------------------------------------------------------
+
+;;  --- Basic functions ---
+
+(define-read-only (echo (shout-out (string-ascii 100)))  ;; echo function - to check if contract is reachable. make this part of trait.
    (ok shout-out))
 
-;; help function - return helpful tips and usage. make this part of trait.
-(define-read-only (help)
+(define-read-only (help)  ;; help function - return helpful tips and usage. make this part of trait.
    (ok "help is on the way"))
 
-;; about function - desribe this contract. make this part of trait.
-(define-read-only (about)
+(define-read-only (about)   ;; about function - desribe this contract. make this part of trait.
    (ok "better escrow. version alpha. tested on clarinet 0.17.0.")
 )
 
-;;  --- Setters and Getters ---
+;;  --- Setters and Getters --- (very useful for Clarinet testing and for making complicated functions easier to read)
+
 (define-read-only (get-tx-sender)
   (ok tx-sender))
 
 (define-read-only (get-contract-caller)
   (ok contract-caller))
 
-(define-read-only (get-principal-contract)  ;; for Clarinet testing only
+(define-read-only (get-principal-contract)  
   (as-contract tx-sender)
 )
 
-(define-read-only (get-balance-contract)  ;; for Clarinet testing only
+(define-read-only (get-balance-contract)  
   (ok (stx-get-balance (get-principal-contract)))
 )
 
 (define-read-only (get-principal-seller)
   (var-get principal-seller))
 
-(define-read-only (get-balance-seller)  ;; for Clarinet testing only
+(define-read-only (get-balance-seller)  
   (ok (stx-get-balance (get-principal-seller))) 
 )
 
@@ -169,7 +170,7 @@
 (define-read-only (get-principal-buyer)
   (var-get principal-buyer))
 
-(define-read-only (get-balance-buyer)  ;; for Clarinet testing only
+(define-read-only (get-balance-buyer)  
   (ok (stx-get-balance (get-principal-buyer))))
 
 (define-private (set-principal-buyer (principal-value principal))
@@ -179,30 +180,26 @@
   (var-get principal-mediator))
 
 (define-private (set-principal-mediator (principal-value principal))
-  (var-set principal-mediator principal-value)
-)
+  (var-set principal-mediator principal-value))
 
-(define-read-only (get-balance-mediator)  ;; for Clarinet testing only
-  (ok (stx-get-balance (get-principal-mediator)))
-)
+(define-read-only (get-balance-mediator)  
+  (ok (stx-get-balance (get-principal-mediator))))
 
 (define-read-only (get-price)
-  (var-get price)
-)
+  (var-get price))
 
 (define-private (set-price (price-value uint))
-  (var-set price price-value)
-)
+  (var-set price price-value))
 
-(define-read-only (get-escrow-status)  ;; 
-  (var-get escrow-status)     ;; Return status of escrow contract
-)
+(define-read-only (get-escrow-status)  ;; Return status of escrow contract
+  (var-get escrow-status))
 
-(define-private (set-escrow-status (state-new uint))  
-  (var-set escrow-status state-new)  ;; update status of contract
-)
+(define-private (set-escrow-status (state-new uint))  ;; update status of contract
+  (var-set escrow-status state-new))
 
-;; -- Escrow status inquiries --
+
+;; -- Escrow status inquiries -- (makes complicated functions easier to read)
+
 (define-read-only (is-state-initial)
   (is-eq (get-escrow-status) STATE-INITIAL))
 
@@ -254,7 +251,7 @@
 (define-read-only (is-state-both-cancelled)
   (is-eq (get-escrow-status) STATE-BOTH-CANCELLED))
 
-(define-read-only (is-state-ready-for-next-round)  ;; is escrow contract currently inactive and ready for next escrow transaction?
+(define-read-only (is-state-ready-for-next-round)  ;; checks if escrow contract is inactive and ready for next escrow transaction
   (or (is-state-initial)
       (is-state-buyer-happy)
       (is-state-mediator-says-good)
@@ -265,18 +262,21 @@
   )
 )
 
-(define-read-only (is-state-ok-adjust-commission) ;; check if status allows for commission rate to be adjusted
-  (or (is-state-mediator-requested) (is-state-buyer-buys-in))
+(define-read-only (is-state-ok-adjust-commission)  ;; check if status allows for commission rate to be adjusted
+  (or (is-state-mediator-requested)
+      (is-state-buyer-buys-in)
+  )
 )
 
-;; Functions to check principals
+;; -- Functions to check for principals  -- (makes complicated functions easier to read and less prone to bugs)
+
 (define-read-only (is-principal-seller-or-buyer)  
   (or (is-eq tx-sender (get-principal-buyer)) (is-eq tx-sender (get-principal-seller)))
 )
     
-;; --------------------------------
+;; --------------------------------------------------------------------------------------------------
 ;; -- MAIN PROCESS BEGINS HERE ---
-;; --------------------------------
+;; --------------------------------------------------------------------------------------------------
 
 ;; Seller initiates an escrow, with specified price.
 (define-public (escrow-create (price-request uint))
@@ -436,16 +436,15 @@
 )
 
 
-
-;; =============================
-;;  MEDIATOR needed.  Oh boy.
-;; =============================
+;; ============================================
+;;  MEDIATOR needed.  Oh boy.  Hey, no sweat.
+;; ============================================
 
 ;; Either the Seller or Buyer can request for a Mediator.
 ;; Once this happens:
 ;;   - Both Seller and Buyer has to sign if they like to cancel the mediator request;
 ;;   - The mediator has to sign contract as acceptance of responsibility.
-;;   - The mediator has to lock funds too equal to the price. To motivate mediator to mediate without delay.
+;;   - The mediator has to lock in funds equal to the price. To motivate mediator to mediate without delay.
 ;; Question: How would I know who requested the Mediator? I can add a unique status combination, but for now just refer to blockchain history.
 
 (define-public (request-mediator)
@@ -542,7 +541,7 @@
 (define-private (set-mediator-commission-rate (commission-rate uint))
   ;; to do - verify if input parameter is between 1 and 20.  Capping it at 20%, unless there's a need later to increase or decrease.
   (begin
-    (asserts! (> commission-rate u0) (err ERR-COMMISSION-RATE-INVALID))
+    (asserts! (and (> commission-rate u0) (<= commission-rate u20)) (err ERR-COMMISSION-RATE-INVALID))
     (var-set mediator-commission-rate commission-rate)
     (ok u0)
   )

@@ -605,6 +605,96 @@ Clarinet.test({
          console.log('+------------------------------+-----------------------------------------------------------------+');
 
 
+
+         console.log(' ');
+         console.log(' ');
+         console.log(' ');
+         console.log('+------------------------------------------------------------------------------------------------+');
+         console.log('|                                  TEST SCENARIO #7                                              |');
+         console.log('+------------------------------------------------------------------------------------------------+');
+         console.log('| Simulate commission rate adjustment.  ');  
+         console.log('+------------------------------------------------------------------------------------------------+');
+ 
+         block = chain.mineBlock([
+             Tx.contractCall('better-escrow', 'get-principal-contract', [], seller.address),  
+             Tx.contractCall('better-escrow', 'escrow-create',  [price], seller.address),
+             Tx.contractCall('better-escrow', 'escrow-accept',  [], buyer.address),
+
+             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),     /* Get initial asset. */
+             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),      /* Get initial asset. */          
+             Tx.contractCall('better-escrow', 'get-balance-contract',  [], buyer.address),   /* Get initial asset. */       
+
+             Tx.contractCall('better-escrow', 'fund-seller',  [], seller.address),
+             Tx.contractCall('better-escrow', 'fund-buyer',   [], buyer.address),            
+             Tx.contractCall('better-escrow', 'get-balance-seller',   [], seller.address),   /* Get updated asset. */
+             Tx.contractCall('better-escrow', 'get-balance-buyer',    [], buyer.address),    /* Get updated asset. */          
+             Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),   /* Get updated asset. */
+
+             Tx.contractCall('better-escrow', 'get-mediator-commission-rate', [], mediator.address), /* Get commission rate */
+             Tx.contractCall('better-escrow', 'get-mediator-commission-amount', [], mediator.address), /* Get commission amount */          
+
+             Tx.contractCall('better-escrow', 'mediator-commission-adjust', ['u15'], mediator.address),  /* Negative test. Principal mediator cannot adjust commission rate. */
+             Tx.contractCall('better-escrow', 'mediator-commission-adjust', ['u25'], buyer.address),     /* Negative test. Commission should be between 1 and 20.  */
+
+             Tx.contractCall('better-escrow', 'mediator-commission-adjust', ['u15'], buyer.address),     /* Positive test. Buyer can adjust commission rate. */
+
+             Tx.contractCall('better-escrow', 'get-mediator-commission-rate', [], mediator.address), /* Get commission rate */
+             Tx.contractCall('better-escrow', 'get-mediator-commission-amount', [], mediator.address), /* Get commission amount */          
+
+             Tx.contractCall('better-escrow', 'mediator-commission-adjust', ['u12'], seller.address),    /* Positive test. Seller can adjust commission rate. */
+
+             Tx.contractCall('better-escrow', 'get-mediator-commission-rate', [], mediator.address), /* Get commission rate */
+             Tx.contractCall('better-escrow', 'get-mediator-commission-amount', [], mediator.address), /* Get commission amount */          
+  
+
+             Tx.contractCall('better-escrow', 'get-balance-seller', [], seller.address),    /* Get updated asset. */
+             Tx.contractCall('better-escrow', 'get-balance-buyer',  [], buyer.address),     /* Get updated asset. */          
+             Tx.contractCall('better-escrow', 'get-balance-contract', [], seller.address),  /* Get updated asset. */
+          ]);
+ 
+          console.log('| seller.address = ' + seller.address);
+          console.log('| buyer.address  = ' + buyer.address);
+          console.log('| price          = ' + price);
+          console.log('| result count   = ' + block.receipts.length);
+          console.log('+--------------------------------+-----------------------------------------------------------------+');
+          console.log('|      Function Name             |   Return value                                                  |');
+          console.log('+--------------------------------+-----------------------------------------------------------------+');
+          console.log('| get-principal-contract         | ' + block.receipts[0].result );
+          console.log('| escrow-create                  | ' + block.receipts[1].result );
+          console.log('| escrow-accept                  | ' + block.receipts[2].result );
+          console.log('| get-balance-seller             | ' + block.receipts[3].result ); 
+          console.log('| get-balance-buyer              | ' + block.receipts[4].result );
+          console.log('| get-balance-contract           | ' + block.receipts[5].result );
+          console.log('| fund-seller                    | ' + block.receipts[6].result );
+          console.log('| fund-buyer                     | ' + block.receipts[7].result );
+          console.log('| get-balance-seller             | ' + block.receipts[8].result );
+          console.log('| get-balance-buyer              | ' + block.receipts[9].result );
+          console.log('| get-balance-contract           | ' + block.receipts[10].result );
+
+          console.log('| get-mediator-commission-rate   | ' + block.receipts[11].result + ' -> Commission rate before adjustment');
+          console.log('| get-mediator-commission-amount | ' + block.receipts[12].result + ' -> Commission amount before adjustment');
+          console.log('| mediator-commission-adjust     | ' + block.receipts[13].result + ' -> Negative test. Mediator not allowed.');
+
+          console.log('| mediator-commission-adjust     | ' + block.receipts[14].result + ' -> Adjust commission rate');
+          console.log('| mediator-commission-adjust     | ' + block.receipts[15].result + ' -> Adjust commission rate');
+          console.log('| get-mediator-commission-rate   | ' + block.receipts[16].result + ' -> Commission rate after adjustment');
+          console.log('| get-mediator-commission-amount | ' + block.receipts[17].result + ' -> Commission amount after adjustment');
+
+          console.log('| mediator-commission-adjust     | ' + block.receipts[18].result + ' -> Adjust commission rate');
+
+          console.log('| get-mediator-commission-rate   | ' + block.receipts[19].result + ' -> Commission rate after adjustment');
+          console.log('| get-mediator-commission-amount | ' + block.receipts[20].result + ' -> Commission amount after adjustment');
+
+          console.log('| get-balance-seller             | ' + block.receipts[21].result );
+          console.log('| get-balance-buyer              | ' + block.receipts[22].result );
+          console.log('| get-balance-contract           | ' + block.receipts[23].result );
+          console.log('+--------------------------------+-----------------------------------------------------------------+');
+         
+          console.log('| Nice. However, there is no assertions yet.  Manual verification of values above is needed.');
+          console.log('+------------------------------------------------------------------------------------------------+');
+         
+ 
+
          /*
          -----------------------------------------------------------------------------------------------------------------   
             END OF THE LINE.  PLEASE WATCH THE GAP.
