@@ -417,10 +417,7 @@
 (define-public (fund-refund-both)
   (begin
     (asserts! (is-state-buyer-cancel-req) (err ERR-WRONG-STATE-7016)) ;; check contract status, if contract can be cancelled
-    (asserts! (or (is-eq tx-sender (get-principal-seller))
-                  (is-eq tx-sender (get-principal-buyer))
-              ) 
-              (err ERR-ACTOR-NOT-ALLOWED-8014)) ;; either seller or buyer
+    (asserts! (is-principal-seller-or-buyer) (err ERR-ACTOR-NOT-ALLOWED-8014)) ;; either seller or buyer
     (try! (fund-refund-both-seller-buyer))
     (set-escrow-status STATE-BOTH-CANCELLED)  ;; cancel contract
     (ok (get-escrow-status))
@@ -450,8 +447,7 @@
 (define-public (request-mediator)
   (begin
     (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7005))
-    (asserts! (or (is-eq tx-sender (get-principal-buyer)) (is-eq tx-sender (get-principal-seller)))  ;; cannot be the buyer nor the seller
-              (err ERR-ACTOR-NOT-ALLOWED-8007))
+    (asserts! (is-principal-seller-or-buyer) (err ERR-ACTOR-NOT-ALLOWED-8007))    ;; only buyer or seller can request
     (set-escrow-status STATE-MEDIATOR-REQUESTED)
     (ok (get-escrow-status))
   )
@@ -461,10 +457,7 @@
 (define-public (mediate-accept)
   (begin
     (asserts! (is-state-mediator-requested) (err ERR-WRONG-STATE-7006))
-    (asserts! (not  (or (is-eq tx-sender (get-principal-buyer))
-                        (is-eq tx-sender (get-principal-seller))))
-              (err ERR-ACTOR-NOT-ALLOWED-8008)  ;; error - neither buyer nor seller can be a mediator
-    ) ;; /asserts!
+    (asserts! (not (is-principal-seller-or-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8008))  ;; error - neither buyer nor seller can be a mediator
     (set-principal-mediator tx-sender)         ;; the mediator is here. welcome sir.
     (try! (transfer-to-contract (get-price)))  ;; mediator buys in
     (set-escrow-status STATE-MEDIATOR-ACCEPTED)
