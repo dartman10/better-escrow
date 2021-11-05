@@ -185,12 +185,6 @@
 (define-read-only (get-balance-mediator)  
   (ok (stx-get-balance (get-principal-mediator))))
 
-(define-read-only (get-price)
-  (var-get price))
-
-(define-private (set-price (price-value uint))
-  (var-set price price-value))
-
 (define-read-only (get-escrow-status)  ;; Return status of escrow contract
   (var-get escrow-status))
 
@@ -270,10 +264,6 @@
 
 ;; -- Functions to check for principals  -- (makes complicated functions easier to read and less prone to bugs)
 
-(define-read-only (is-tx-sender-seller-or-buyer)  
-  (or (is-eq tx-sender (get-principal-buyer)) (is-eq tx-sender (get-principal-seller)))
-)
-
 (define-read-only (is-tx-sender-seller)  
   (is-eq tx-sender (get-principal-seller))
 )
@@ -285,6 +275,26 @@
 (define-read-only (is-tx-sender-mediator)  
   (is-eq tx-sender (get-principal-mediator))
 )
+
+(define-read-only (is-tx-sender-seller-or-buyer)  
+  (or (is-tx-sender-buyer) (is-tx-sender-seller))
+)
+
+(define-read-only (is-tx-sender-not-seller-nor-buyer)  
+  (not (is-tx-sender-seller-or-buyer))
+)
+
+;; -- Price related verbalizations ---
+
+(define-read-only (get-price)
+  (var-get price))
+
+(define-private (set-price (price-value uint))
+  (var-set price price-value))
+
+(define-read-only (get-price-doubled)
+  (* (get-price) u2))
+
 
 
 ;; --------------------------------------------------------------------------------------------------
@@ -328,7 +338,7 @@
   (begin
     (asserts! (is-state-seller-buys-in) (err ERR-WRONG-STATE-7003)) ;; check contract status
     (asserts! (is-tx-sender-buyer) (err ERR-ACTOR-NOT-ALLOWED-8001)) ;; make sure buyer is calling
-    (try! (transfer-to-contract (* (get-price) u2)))   ;; Buyer sends twice as much as the seller's funds. Half for collateral, half for price of goods.
+    (try! (transfer-to-contract (get-price-doubled)))   ;; Buyer sends twice as much as the seller's funds. Half for collateral, half for price of goods.
     (set-escrow-status STATE-BUYER-BUYS-IN)
     (ok (get-escrow-status))
   ) ;; /begin
@@ -440,7 +450,7 @@
 (define-private (fund-refund-both-seller-buyer) 
   (begin
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-seller))))  ;; refund seller
-    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-buyer))))  ;; refund buyer
+    (try! (as-contract (stx-transfer? (get-price-doubled) tx-sender (get-principal-buyer))))  ;; refund buyer
     (ok u0)
   )
 )
@@ -470,7 +480,7 @@
 (define-public (mediate-accept)
   (begin
     (asserts! (is-state-mediator-requested) (err ERR-WRONG-STATE-7006))
-    (asserts! (not (is-tx-sender-seller-or-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8008))  ;; error - neither buyer nor seller can be a mediator
+    (asserts! (is-tx-sender-not-seller-nor-buyer) (err ERR-ACTOR-NOT-ALLOWED-8008))  ;; error - neither buyer nor seller can be a mediator
     (set-principal-mediator tx-sender)         ;; the mediator is here. welcome sir.
     (try! (transfer-to-contract (get-price)))  ;; mediator buys in
     (set-escrow-status STATE-MEDIATOR-ACCEPTED)
@@ -529,9 +539,9 @@
 ;;  - Buyer gets all his money back minus half mediator commission.
 (define-private (fund-refund)
   (begin
-    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission-amount)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral
-    (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-buyer))))  ;; send collateral back to buyer minus half of mediator commission
-    (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-seller))))  ;; send collateral back to seller minus half of mediator commission
+    (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission-amount)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral/price
+    (try! (as-contract (stx-transfer? (- (get-price-doubled) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-buyer))))  ;; send collateral/price back to buyer minus half of mediator commission
+    (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-seller))))  ;; send collateral/price back to seller minus half of mediator commission
     (ok u0)
   )
 )
