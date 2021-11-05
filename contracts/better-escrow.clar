@@ -273,7 +273,16 @@
 (define-read-only (is-principal-seller-or-buyer)  
   (or (is-eq tx-sender (get-principal-buyer)) (is-eq tx-sender (get-principal-seller)))
 )
-    
+
+(define-read-only (is-principal-seller)  
+  (is-eq tx-sender (get-principal-seller))
+)
+
+
+(define-read-only (is-principal-buyer)  
+  (is-eq tx-sender (get-principal-buyer))
+)
+
 ;; --------------------------------------------------------------------------------------------------
 ;; -- MAIN PROCESS BEGINS HERE ---
 ;; --------------------------------------------------------------------------------------------------
@@ -303,7 +312,7 @@
 (define-public (fund-seller)
   (begin
     (asserts! (is-state-buyer-accepted) (err ERR-WRONG-STATE-7002)) ;; check escrow status
-    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8000))   
+    (asserts! (is-principal-seller) (err ERR-ACTOR-NOT-ALLOWED-8000))
     (try! (transfer-to-contract (get-price))) 
     (set-escrow-status STATE-SELLER-BUYS-IN)
     (ok (get-escrow-status))
@@ -314,7 +323,7 @@
 (define-public (fund-buyer)
   (begin
     (asserts! (is-state-seller-buys-in) (err ERR-WRONG-STATE-7003)) ;; check contract status
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8001)) ;; make sure buyer is calling
+    (asserts! (is-principal-buyer) (err ERR-ACTOR-NOT-ALLOWED-8001)) ;; make sure buyer is calling
     (try! (transfer-to-contract (* (get-price) u2)))   ;; Buyer sends twice as much as the seller's funds. Half for collateral, half for price of goods.
     (set-escrow-status STATE-BUYER-BUYS-IN)
     (ok (get-escrow-status))
@@ -325,7 +334,7 @@
 (define-public (fund-release)
   (begin
     (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7004)) ;; check contract status first
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8002)) ;; Only the buyer can release the funds.
+    (asserts! (is-principal-buyer) (err ERR-ACTOR-NOT-ALLOWED-8002)) ;; Only the buyer can release the funds.
     (try! (transfer-from-contract))   
     (set-escrow-status STATE-BUYER-IS-HAPPY)
     (ok (get-escrow-status))
@@ -358,7 +367,7 @@
   (begin
     (asserts! (or (is-state-seller-initiated) (is-state-buyer-accepted)) 
               (err ERR-WRONG-STATE-7011)) ;; check contract status, if contract can be cancelled by seller
-    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8009)) ;; seller please
+    (asserts! (is-principal-seller) (err ERR-ACTOR-NOT-ALLOWED-8009)) ;; seller please
     (set-escrow-status STATE-SELLER-CANCELLED)  ;; cancel contract
     (ok (get-escrow-status))
   )
@@ -369,7 +378,7 @@
   (begin
     (asserts! (or (is-state-seller-initiated) (is-state-buyer-accepted)) 
               (err ERR-WRONG-STATE-7012)) ;; check contract status, if contract can be cancelled by buyer
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8010)) ;; buyer please
+    (asserts! (is-principal-buyer) (err ERR-ACTOR-NOT-ALLOWED-8010)) ;; buyer please
     (set-escrow-status STATE-BUYER-CANCELLED)  ;; cancel contract
     (ok (get-escrow-status))
   )
@@ -379,7 +388,7 @@
 (define-public (cancel-seller-refund-self)
   (begin
     (asserts! (is-state-seller-buys-in) (err ERR-WRONG-STATE-7013)) ;; check contract status, if contract can be cancelled by seller
-    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8011)) ;; seller please
+    (asserts! (is-principal-seller) (err ERR-ACTOR-NOT-ALLOWED-8011)) ;; seller please
     (try! (fund-refund-seller-only))
     (set-escrow-status STATE-SELLER-CANCELLED)  ;; cancel contract
     (ok (get-escrow-status))
@@ -397,7 +406,7 @@
 (define-public (cancel-seller-both-sign)
   (begin
     (asserts! (is-state-buyer-buys-in) (err ERR-WRONG-STATE-7014)) ;; check contract status, if contract can be cancelled
-    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8012)) ;; seller please
+    (asserts! (is-principal-seller) (err ERR-ACTOR-NOT-ALLOWED-8012)) ;; seller please
     (set-escrow-status STATE-SELLER-CANCEL-REQ)  ;; set escrow status
     (ok (get-escrow-status))
   )
@@ -407,7 +416,7 @@
 (define-public (cancel-buyer-both-sign)
   (begin
     (asserts! (is-state-seller-cancel-req) (err ERR-WRONG-STATE-7015)) ;; check contract status, if contract can be cancelled
-    (asserts! (is-eq tx-sender (get-principal-buyer)) (err ERR-ACTOR-NOT-ALLOWED-8013)) ;; buyer agree to cancel
+    (asserts! (is-principal-buyer) (err ERR-ACTOR-NOT-ALLOWED-8013)) ;; buyer agree to cancel
     (set-escrow-status STATE-BUYER-CANCEL-REQ)  ;; set escrow status
     (ok (get-escrow-status))
   )
@@ -468,7 +477,7 @@
 ;; Seller vets Mediator then confirms
 (define-public (mediator-confirmation-seller)
   (begin
-    (asserts! (is-eq tx-sender (get-principal-seller)) (err ERR-ACTOR-NOT-ALLOWED-8003))  ;; Check if tx-sender is Seller
+    (asserts! (is-principal-seller) (err ERR-ACTOR-NOT-ALLOWED-8003))  ;; Check if tx-sender is Seller
     (asserts! (is-state-mediator-accepted) (err ERR-WRONG-STATE-7007)) ;; seller confirms ahead of buyer. refactor later to allow either buyer or seller to go ahead.
     (set-escrow-status STATE-SELLER-OK-MEDIATOR)
     (ok (get-escrow-status))
