@@ -39,15 +39,17 @@
 ;;
 ;;
 ;; To Dos:
-;;   1. Allow seller and buyer to cancel the escrow transaction at appropriate statuses.
-;;   2. Add another actor, the Agent.  The person facilitating or assisting the seller and buyer 
-;;      with escrow smart contract app.  This role may be import in early stages of adoption.
+;;   1. Add another actor, an Agent.  The person facilitating or assisting the seller and buyer with using 
+;;      the escrow smart contract app.  This role is especially important for big ticket items.  May be important
+;;      in early stages of app adoption.  This is also a possible job/gig creation opportunity.
+;;   2. Handle multiple instances of live escrows.
+;;   3. Create UI.
 ;;
 ;;
 ;; Some future practical features or use-cases:
 ;;   1. Escrow agents can utilize smart contract. To minimize paper work and to eliminate wiring funds thru banks.
 ;;   2. Mediators can enroll as service providers.  To help build trust in the system.
-;;   3. Make fiat/STX blockchain transaction seamless and user friendly.
+;;   3. Make fiat/STX/MIA transaction seamless and user friendly.
 ;;   4. Escrow API for third party integration.
 ;;
 ;;
