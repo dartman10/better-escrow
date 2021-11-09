@@ -1,6 +1,9 @@
 # better-escrow
+
 ## The Better Escrow Service
-Runs on Stacks blockchain, secured by Bitcoin.
+
+*runs on Stacks, settles on Bitcoin*
+
 
 ![scenario_001.png](https://raw.githubusercontent.com/dartman10/better-escrow/develop/img/scenario_001.png)
 
