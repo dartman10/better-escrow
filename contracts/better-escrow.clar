@@ -140,8 +140,7 @@
    (ok "help is on the way"))
 
 (define-read-only (about)   ;; about function - desribe this contract. make this part of trait.
-   (ok "better escrow. version alpha. tested on clarinet 0.17.0.")
-)
+   (ok "better escrow. version alpha. tested on clarinet 0.17.0."))
 
 ;;  --- Setters and Getters --- (very useful for Clarinet testing and for making complicated functions easier to read)
 
@@ -152,19 +151,16 @@
   (ok contract-caller))
 
 (define-read-only (get-principal-contract)  
-  (as-contract tx-sender)
-)
+  (as-contract tx-sender))
 
 (define-read-only (get-balance-contract)  
-  (ok (stx-get-balance (get-principal-contract)))
-)
+  (ok (stx-get-balance (get-principal-contract))))
 
 (define-read-only (get-principal-seller)
   (var-get principal-seller))
 
 (define-read-only (get-balance-seller)  
-  (ok (stx-get-balance (get-principal-seller))) 
-)
+  (ok (stx-get-balance (get-principal-seller))) )
 
 (define-private (set-principal-seller (principal-value principal)) 
   (var-set principal-seller principal-value))
@@ -260,31 +256,32 @@
 
 (define-read-only (is-state-ok-adjust-commission)  ;; check if status allows for commission rate to be adjusted
   (or (is-state-mediator-requested)
-      (is-state-buyer-buys-in)
-  )
-)
+      (is-state-buyer-buys-in)))
+
+(define-read-only (is-state-can-be-cancelled-by-seller)  ;; check if contract can be cancelled by seller
+  (or (is-state-seller-initiated) 
+      (is-state-buyer-accepted)))
+
+(define-read-only (is-state-can-be-cancelled-by-buyer)   ;; check if contract can be cancelled by buyer
+  (or (is-state-seller-initiated)
+      (is-state-buyer-accepted)))           
 
 ;; -- Functions to check for principals  -- (makes complicated functions easier to read and less prone to bugs)
 
 (define-read-only (is-tx-sender-seller)  
-  (is-eq tx-sender (get-principal-seller))
-)
+  (is-eq tx-sender (get-principal-seller)))
 
 (define-read-only (is-tx-sender-buyer)  
-  (is-eq tx-sender (get-principal-buyer))
-)
+  (is-eq tx-sender (get-principal-buyer)))
 
 (define-read-only (is-tx-sender-mediator)  
-  (is-eq tx-sender (get-principal-mediator))
-)
+  (is-eq tx-sender (get-principal-mediator)))
 
 (define-read-only (is-tx-sender-seller-or-buyer)  
-  (or (is-tx-sender-buyer) (is-tx-sender-seller))
-)
+  (or (is-tx-sender-buyer) (is-tx-sender-seller)))
 
 (define-read-only (is-tx-sender-not-seller-nor-buyer)  
-  (not (is-tx-sender-seller-or-buyer))
-)
+  (not (is-tx-sender-seller-or-buyer)))
 
 ;; -- Price related verbalizations ---
 
@@ -369,7 +366,7 @@
 (define-private (transfer-from-contract)
   (begin
     (try! (as-contract (stx-transfer? (get-price) tx-sender (get-principal-buyer))))  ;; send funds to buyer
-    (try! (as-contract (stx-transfer? (* (get-price) u2) tx-sender (get-principal-seller))))  ;; send funds to seller 
+    (try! (as-contract (stx-transfer? (get-price-doubled) tx-sender (get-principal-seller))))  ;; send funds to seller 
     (ok u0)
   )
 )
@@ -381,8 +378,7 @@
 ;; Seller cancels contract. No refund is needed because no locked funds yet.
 (define-public (cancel-seller-refund-no)
   (begin
-    (asserts! (or (is-state-seller-initiated) (is-state-buyer-accepted)) 
-              (err ERR-WRONG-STATE-7011)) ;; check contract status, if contract can be cancelled by seller
+    (asserts! (is-state-can-be-cancelled-by-seller) (err ERR-WRONG-STATE-7011)) ;; check contract status, if contract can be cancelled by seller
     (asserts! (is-tx-sender-seller) (err ERR-ACTOR-NOT-ALLOWED-8009)) ;; seller please
     (set-escrow-status STATE-SELLER-CANCELLED)  ;; cancel contract
     (ok (get-escrow-status))
@@ -392,8 +388,7 @@
 ;; Buyer cancels contract. No refund is needed because no locked funds yet.
 (define-public (cancel-buyer-refund-no)
   (begin
-    (asserts! (or (is-state-seller-initiated) (is-state-buyer-accepted)) 
-              (err ERR-WRONG-STATE-7012)) ;; check contract status, if contract can be cancelled by buyer
+    (asserts! (is-state-can-be-cancelled-by-buyer) (err ERR-WRONG-STATE-7012)) ;; check contract status, if contract can be cancelled by buyer
     (asserts! (is-tx-sender-buyer) (err ERR-ACTOR-NOT-ALLOWED-8010)) ;; buyer please
     (set-escrow-status STATE-BUYER-CANCELLED)  ;; cancel contract
     (ok (get-escrow-status))
@@ -570,7 +565,7 @@
 )
 
 (define-read-only (get-mediator-commission-amount)
-  (/ (* (get-price) (get-mediator-commission-rate)) u100)  ;; calculate the commission amount. what happens to fractional values?
+  (/ (* (get-price) (get-mediator-commission-rate)) u100)  ;; calculate the commission amount
 )
 
 ;; Mediator decided good, so disburse funds appropriately.
@@ -578,7 +573,7 @@
   (begin
     (try! (as-contract (stx-transfer? (+ (get-price) (get-mediator-commission-amount)) tx-sender (get-principal-mediator))))  ;; send commission to mediator plus collateral/price
     (try! (as-contract (stx-transfer? (- (get-price) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-buyer))))  ;; send collateral/price back to buyer minus half of mediator commission, and minus the item price
-    (try! (as-contract (stx-transfer? (- (* (get-price) u2) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-seller))))  ;; send collateral/price funds plus price to seller, minus half of mediator commission
+    (try! (as-contract (stx-transfer? (- (get-price-doubled) (/ (get-mediator-commission-amount) u2)) tx-sender (get-principal-seller))))  ;; send collateral/price funds plus price to seller, minus half of mediator commission
     (ok u0)
   )
 )
