@@ -14,6 +14,7 @@ Clarinet.test({
 
         let price     = 'u1000';                   /* Set the escrow sell price.  Adjust as desired. */
         let hello     = '"Hello Better World!"';   /* For the echo function. */
+        let helpMsg   = '"help is on the way"';    /* For the help function. */
 
         console.log(' ');
         console.log(' ');
@@ -35,9 +36,10 @@ Clarinet.test({
         console.log('| get-escrow-status  = ' + block.receipts[3].result);
         
 
-        /* assertEquals(block.receipts.length, 2); */
+        assertEquals(block.receipts.length, 4)
         assertEquals(block.receipts[0].result.expectOk(), '"better escrow. version alpha. tested on clarinet 0.17.0."');
         assertEquals(block.receipts[1].result.expectOk(), hello);
+        assertEquals(block.receipts[2].result.expectOk(), helpMsg);
         assertEquals(block.receipts[3].result, 'u6000');
         console.log('+------------------------------------------------------------------------------------------------+');
 
